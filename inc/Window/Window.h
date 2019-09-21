@@ -3,12 +3,13 @@
 
 
 #include <SDL2/SDL.h>
-#include <functional>
 #include <memory>
 #include <string_view>
 
+
+
+#include "EventSlot.h"
 #include "NonCopyable.h"
-#include "Typedef.h"
 
 
 
@@ -17,26 +18,37 @@ namespace abollo
 
 
 
-class Window final : public internal::NonCopyable
+using WindowHandle = SDL_Window;
+
+class Application;
+
+
+
+class Window final : private internal::NonCopyable
 {
 private:
     Uint32 mWindowId;
     std::unique_ptr<WindowHandle, decltype(&SDL_DestroyWindow)> mWindow;
 
-    std::function<void(const WindowEvent&)> mWindowEventHandler = [](const WindowEvent&) {};
+    MouseEventSlot mMouseEventSlot;
+    KeyEventSlot mKeyEventSlot;
 
-    std::function<void(const KeyboardEvent&)> mKeyDownEventHandler = [](const KeyboardEvent&) {};
-    std::function<void(const KeyboardEvent&)> mKeyUpEventHandler   = [](const KeyboardEvent&) {};
+    friend class Application;
 
-    std::function<void(const MouseMotionEvent&)> mMouseMotionHandler     = [](const MouseMotionEvent&) {};
-    std::function<void(const MouseButtonEvent&)> mMouseButtonDownHandler = [](const MouseButtonEvent&) {};
-    std::function<void(const MouseButtonEvent&)> mMouseButtonUpHandler   = [](const MouseButtonEvent&) {};
-    std::function<void(const MouseWheelEvent&)> mMouseWheelEventHandler   = [](const MouseWheelEvent&) {};
-    std::function<void(const MouseWheelEvent&)> mMouseWheelHandler       = [](const MouseWheelEvent&) {};
+    template <MouseEvent E, typename... Args>
+    constexpr void Signal(Args&&... aArgs) const
+    {
+        mMouseEventSlot.Signal<E>(std::forward<Args>(aArgs)...);
+    }
+
+    template <KeyEvent E, typename... Args>
+    constexpr void Signal(Args&&... aArgs) const
+    {
+        mKeyEventSlot.Signal<E>(std::forward<Args>(aArgs)...);
+    }
 
 public:
-    Window(const std::string_view aTitle, const int aPosX, const int aPosY, const int aWidth, const int aHeight,
-           const Uint32 aFlags)
+    Window(const std::string_view aTitle, const int aPosX, const int aPosY, const int aWidth, const int aHeight, const Uint32 aFlags)
         : mWindow(SDL_CreateWindow(aTitle.data(), aPosX, aPosY, aWidth, aHeight, aFlags), &SDL_DestroyWindow)
     {
         mWindowId = SDL_GetWindowID(mWindow.get());
@@ -52,80 +64,21 @@ public:
         return mWindowId;
     }
 
-
     [[nodiscard]] WindowHandle* GetHandle() const
     {
         return mWindow.get();
     }
 
-    template <Event e, typename E>
-    constexpr void On(E&& aEvent) const
+    template <MouseEvent E, typename Slot>
+    constexpr void On(Slot&& aSlot)
     {
-        if constexpr (e == Event::eWindowEvent)
-            mWindowEventHandler(aEvent);
-        else if constexpr (e == Event::eMouseMotion)
-            mMouseMotionHandler(aEvent);
-        else if constexpr (e == Event::eMouseButtonDown)
-            mMouseButtonDownHandler(aEvent);
-        else if constexpr (e == Event::eMouseButtonUp)
-            mMouseButtonUpHandler(aEvent);
-        else if constexpr (e == Event::eMouseWheel)
-            mMouseWheelEventHandler(aEvent);
-        else if constexpr (e == Event::eKeyDown)
-            mKeyDownEventHandler(aEvent);
-        else if constexpr (e == Event::eKeyUp)
-            mKeyUpEventHandler(aEvent);
-        else
-            static_assert(false, "Event type is not supported.");
-
-        /*switch (e)
-        {
-        case Event::eWindowEvent:
-            mWindowEventHandler(aEvent);
-            break;
-
-        case Event::eMouseMotion:
-            mMouseMotionHandler(aEvent);
-            break;
-
-        default:
-            static_assert(false, "Event type is not supported.");
-        }*/
+        mMouseEventSlot.On<E>(std::forward<Slot>(aSlot));
     }
 
-    template <Event e, typename Callable>
-    constexpr void Set(Callable&& aEventHandler)
+    template <KeyEvent E, typename Slot>
+    constexpr void On(Slot&& aSlot)
     {
-        if constexpr (e == Event::eWindowEvent)
-            mWindowEventHandler = aEventHandler;
-        else if constexpr (e == Event::eMouseMotion)
-            mMouseMotionHandler = aEventHandler;
-        else if constexpr (e == Event::eMouseButtonDown)
-            mMouseButtonDownHandler = aEventHandler;
-        else if constexpr (e == Event::eMouseButtonUp)
-            mMouseButtonUpHandler = aEventHandler;
-        else if constexpr (e == Event::eMouseWheel)
-            mMouseWheelEventHandler = aEventHandler;
-        else if constexpr (e == Event::eKeyDown)
-            mKeyDownEventHandler = aEventHandler;
-        else if constexpr (e == Event::eKeyUp)
-            mKeyUpEventHandler = aEventHandler;
-        else
-            static_assert(false, "Event type is not supported.");
-
-        /*switch (e)
-        {
-        case Event::eWindowEvent:
-            mWindowEventHandler = aEventHandler;
-            break;
-
-        case Event::eMouseMotion:
-            mMouseMotionHandler = aEventHandler;
-            break;
-
-        default:
-            static_assert(false, "Event type is not supported.");
-        }*/
+        mKeyEventSlot.On<E>(std::forward<Slot>(aSlot));
     }
 };
 

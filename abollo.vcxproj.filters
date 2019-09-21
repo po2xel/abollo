@@ -19,6 +19,9 @@
     <Filter Include="Source Files\Window">
       <UniqueIdentifier>{634356c3-a487-4e2b-b580-4e39ce067790}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\fmt">
+      <UniqueIdentifier>{ce592a1b-7819-42b4-ab14-5269327be014}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -27,11 +30,11 @@
     <ClCompile Include="src\Window\Application.cpp">
       <Filter>Source Files\Window</Filter>
     </ClCompile>
+    <ClCompile Include="src\fmt\format.cc">
+      <Filter>Source Files\fmt</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="inc\Window\Typedef.h">
-      <Filter>Header Files\Window</Filter>
-    </ClInclude>
     <ClInclude Include="inc\Window\Application.h">
       <Filter>Header Files\Window</Filter>
     </ClInclude>
@@ -42,6 +45,9 @@
       <Filter>Header Files\Window</Filter>
     </ClInclude>
     <ClInclude Include="inc\Window\Window.h">
+      <Filter>Header Files\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Window\EventSlot.h">
       <Filter>Header Files\Window</Filter>
     </ClInclude>
   </ItemGroup>
