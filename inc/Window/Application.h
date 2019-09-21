@@ -45,25 +45,20 @@ constexpr auto operator|(const SubSystem& aLhs, const SubSystem& aRhs)
 
 
 
-
 class Application final : private internal::Singleton<Application>
 {
 private:
-    using WindowEvent      = SDL_WindowEvent;
-    using KeyboardEvent    = SDL_KeyboardEvent;
-    using MouseMotionEvent = SDL_MouseMotionEvent;
-    using MouseButtonEvent = SDL_MouseButtonEvent;
-    using MouseWheelEvent  = SDL_MouseWheelEvent;
-
     std::unordered_map<Uint32, const Window&> mWindows;
 
-    void OnMouseButtonDownEvent(const MouseButtonEvent& aEvent) const;
-    void OnMouseButtonUpEvent(const MouseButtonEvent& aEvent) const;
-    void OnMouseMotionEvent(const MouseMotionEvent& aEvent) const;
-    void OnMouseWheelEvent(const MouseWheelEvent& aEvent) const;
+    void OnWindowEvent(const SDL_WindowEvent& aEvent) const;
 
-    void OnKeyDownEvent(const KeyboardEvent& aEvent) const;
-    void OnKeyUpEvent(const KeyboardEvent& aEvent) const;
+    void OnMouseButtonDownEvent(const SDL_MouseButtonEvent& aEvent) const;
+    void OnMouseButtonUpEvent(const SDL_MouseButtonEvent& aEvent) const;
+    void OnMouseMotionEvent(const SDL_MouseMotionEvent& aEvent) const;
+    void OnMouseWheelEvent(const SDL_MouseWheelEvent& aEvent) const;
+
+    void OnKeyDownEvent(const SDL_KeyboardEvent& aEvent) const;
+    void OnKeyUpEvent(const SDL_KeyboardEvent& aEvent) const;
 
 public:
     using Singleton<Application>::Instance;
@@ -86,6 +81,22 @@ public:
 
     void Register(const Window& aWindow);
     void Run() const;
+
+
+    static void DisableScreenSaver()    // Prevent the screen from being blanked by a screen saver.
+    {
+        SDL_DisableScreenSaver();
+    }
+
+    static void EnableScreenSaver()    // Allow the screen to be blanked by a screen saver.
+    {
+        SDL_EnableScreenSaver();
+    }
+
+    static bool IsScreenSaverEnabled()    // Return whether the screen saver is currently enabled. The screen saver is disabled by default.
+    {
+        return SDL_TRUE == SDL_IsScreenSaverEnabled();
+    }
 };
 
 

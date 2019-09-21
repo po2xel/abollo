@@ -51,37 +51,6 @@ constexpr auto operator&(const MouseMask& aLhs, const Uint32 aMask)
 }
 
 
-
-enum class MouseEvent : Uint8
-{
-    eLButtonDown,
-    eLButtonUp,
-
-    eRButtonDown,
-    eRButtonUp,
-
-    eMButtonDown,
-    eMButtonUp,
-
-    eX1ButtonDown,
-    eX1ButtonUp,
-
-    eX2ButtonDown,
-    eX2ButtonUp,
-
-    eWheel,
-
-    eMotion
-};
-
-
-enum class KeyEvent : Uint8
-{
-    eDown,
-    eUp
-};
-
-
 enum class KeyModifier : Uint16
 {
     eNone   = KMOD_NONE,
@@ -222,21 +191,151 @@ enum class Key : Uint32
 
 
 
-#define STATIC_EVENT_CONNECT_IF(E, EventCat, EventType, slot) \
-    if constexpr (E == EventCat::e##EventType)                \
-        m##EventType##Slot.connect(std::forward<Slot>(slot));
+enum class WindowEvent : Uint8
+{
+    eShown       = SDL_WINDOWEVENT_SHOWN,
+    eHidden      = SDL_WINDOWEVENT_HIDDEN,
+    eExposed     = SDL_WINDOWEVENT_EXPOSED,
+    eMoved       = SDL_WINDOWEVENT_MOVED,
+    eResized     = SDL_WINDOWEVENT_RESIZED,
+    eSizeChanged = SDL_WINDOWEVENT_SIZE_CHANGED,
+    eMinimized   = SDL_WINDOWEVENT_MINIMIZED,
+    eMaximized   = SDL_WINDOWEVENT_MAXIMIZED,
+    eRestored    = SDL_WINDOWEVENT_RESTORED,
+    eEnter       = SDL_WINDOWEVENT_ENTER,
+    eLeave       = SDL_WINDOWEVENT_LEAVE,
+    eFocusGained = SDL_WINDOWEVENT_FOCUS_GAINED,
+    eFocusLost   = SDL_WINDOWEVENT_FOCUS_LOST,
+    eClose       = SDL_WINDOWEVENT_CLOSE,
+    eTakeFocus   = SDL_WINDOWEVENT_TAKE_FOCUS,
+    eHitTest     = SDL_WINDOWEVENT_HIT_TEST
+};
 
-#define STATIC_EVENT_CONNECT_ELIF(E, EventCat, EventType, slot) else STATIC_EVENT_CONNECT_IF(E, EventCat, EventType, slot)
 
 
-#define STATIC_EVENT_SIGNAL_IF(E, EventCat, EventType, A, args) \
-    if constexpr (E == EventCat::e##EventType)                  \
-        std::invoke(m##EventType##Slot, std::forward<A>(args)...);
+enum class MouseEvent : Uint8
+{
+    eLButtonDown,
+    eLButtonUp,
 
-#define STATIC_EVENT_SIGNAL_ELIF(E, EventCat, EventType, A, args) else STATIC_EVENT_SIGNAL_IF(E, EventCat, EventType, A, args)
+    eRButtonDown,
+    eRButtonUp,
+
+    eMButtonDown,
+    eMButtonUp,
+
+    eX1ButtonDown,
+    eX1ButtonUp,
+
+    eX2ButtonDown,
+    eX2ButtonUp,
+
+    eWheel,
+
+    eMotion
+};
+
+
+enum class KeyEvent : Uint8
+{
+    eDown,
+    eUp
+};
+
+
+// template <typename E, E e>
+// struct Event
+// {
+//     using type                  = E;
+//     static constexpr type value = e;
+// };
+
+
+
+
+#define STATIC_EVENT_CONNECT_IF(E, EventCat, EventType) \
+    if constexpr (E == EventCat::e##EventType)          \
+        m##EventType##Slot.connect(std::forward<Slot>(aSlot));
+
+#define STATIC_EVENT_CONNECT_ELIF(E, EventCat, EventType) else STATIC_EVENT_CONNECT_IF(E, EventCat, EventType)
+
+
+#define STATIC_EVENT_SIGNAL_IF(E, EventCat, EventType) \
+    if constexpr (E == EventCat::e##EventType)         \
+        std::invoke(m##EventType##Slot, std::forward<Args>(aArgs)...);
+
+#define STATIC_EVENT_SIGNAL_ELIF(E, EventCat, EventType) else STATIC_EVENT_SIGNAL_IF(E, EventCat, EventType)
 
 #define STATIC_EVENT_ELSE_FALSE else static_assert(false, "Event type is not supproted.");
 
+
+
+class WindowEventSlot
+{
+private:
+    signal<void()> mShownSlot;
+    signal<void()> mHiddenSlot;
+    signal<void()> mExposedSlot;
+    signal<void()> mSizeChangedSlot;
+    signal<void()> mMinimizedSlot;
+    signal<void()> mMaximizedSlot;
+    signal<void()> mRestoredSlot;
+    signal<void()> mEnterSlot;
+    signal<void()> mLeaveSlot;
+    signal<void()> mFocusGainedSlot;
+    signal<void()> mFocusLostSlot;
+    signal<void()> mCloseSlot;
+    signal<void()> mTakeFocusSlot;
+    signal<void()> mHitTestSlot;
+
+    signal<void(const Sint32 aWidth, const Sint32 aHeight)> mMovedSlot;
+    signal<void(const Sint32 aWidth, const Sint32 aHeight)> mResizedSlot;
+
+public:
+    template <WindowEvent E, typename Slot>
+    constexpr void On(Slot&& aSlot)
+    {
+        STATIC_EVENT_CONNECT_IF(E, WindowEvent, Shown)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Hidden)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Exposed)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Moved)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Resized)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, SizeChanged)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Minimized)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Maximized)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Restored)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Enter)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Leave)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, FocusGained)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, FocusLost)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Close)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, TakeFocus)
+        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, HitTest)
+        STATIC_EVENT_ELSE_FALSE
+    }
+
+    template <WindowEvent E, typename... Args>
+    constexpr void Signal(Args&&... aArgs) const
+    {
+        STATIC_EVENT_SIGNAL_IF(E, WindowEvent, Shown)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Hidden)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Exposed)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Moved)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Resized)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, SizeChanged)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Minimized)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Maximized)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Restored)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Enter)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Leave)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, FocusGained)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, FocusLost)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Close)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, TakeFocus)
+        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, HitTest)
+        STATIC_EVENT_ELSE_FALSE
+    }
+};
 
 
 class MouseEventSlot
@@ -265,18 +364,18 @@ public:
     template <MouseEvent E, typename Slot>
     constexpr void On(Slot&& aSlot)
     {
-        STATIC_EVENT_CONNECT_IF(E, MouseEvent, LButtonDown, aSlot)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, LButtonUp, aSlot)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, MButtonDown, aSlot)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, MButtonUp, aSlot)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, RButtonDown, aSlot)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, RButtonUp, aSlot)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, X1ButtonDown, aSlot)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, X1ButtonUp, aSlot)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, X2ButtonDown, aSlot)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, X2ButtonUp, aSlot)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, Wheel, aSlot)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, Motion, aSlot)
+        STATIC_EVENT_CONNECT_IF(E, MouseEvent, LButtonDown)
+        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, LButtonUp)
+        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, MButtonDown)
+        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, MButtonUp)
+        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, RButtonDown)
+        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, RButtonUp)
+        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, X1ButtonDown)
+        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, X1ButtonUp)
+        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, X2ButtonDown)
+        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, X2ButtonUp)
+        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, Wheel)
+        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, Motion)
         STATIC_EVENT_ELSE_FALSE
     }
 
@@ -284,18 +383,18 @@ public:
     template <MouseEvent E, typename... Args>
     constexpr void Signal(Args&&... aArgs) const
     {
-        STATIC_EVENT_SIGNAL_IF(E, MouseEvent, LButtonDown, Args, aArgs)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, LButtonUp, Args, aArgs)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, MButtonDown, Args, aArgs)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, MButtonUp, Args, aArgs)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, RButtonDown, Args, aArgs)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, RButtonUp, Args, aArgs)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, X1ButtonDown, Args, aArgs)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, X1ButtonUp, Args, aArgs)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, X2ButtonDown, Args, aArgs)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, X2ButtonUp, Args, aArgs)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, Wheel, Args, aArgs)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, Motion, Args, aArgs)
+        STATIC_EVENT_SIGNAL_IF(E, MouseEvent, LButtonDown)
+        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, LButtonUp)
+        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, MButtonDown)
+        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, MButtonUp)
+        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, RButtonDown)
+        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, RButtonUp)
+        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, X1ButtonDown)
+        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, X1ButtonUp)
+        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, X2ButtonDown)
+        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, X2ButtonUp)
+        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, Wheel)
+        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, Motion)
         STATIC_EVENT_ELSE_FALSE
     }
 };
@@ -312,16 +411,16 @@ public:
     template <KeyEvent E, typename Slot>
     constexpr void On(Slot&& aSlot)
     {
-        STATIC_EVENT_CONNECT_IF(E, KeyEvent, Down, aSlot)
-        STATIC_EVENT_CONNECT_ELIF(E, KeyEvent, Up, aSlot)
+        STATIC_EVENT_CONNECT_IF(E, KeyEvent, Down)
+        STATIC_EVENT_CONNECT_ELIF(E, KeyEvent, Up)
         STATIC_EVENT_ELSE_FALSE
     }
 
     template <KeyEvent E, typename... Args>
     constexpr void Signal(Args&&... aArgs) const
     {
-        STATIC_EVENT_SIGNAL_IF(E, KeyEvent, Down, Args, aArgs)
-        STATIC_EVENT_SIGNAL_ELIF(E, KeyEvent, Up, Args, aArgs)
+        STATIC_EVENT_SIGNAL_IF(E, KeyEvent, Down)
+        STATIC_EVENT_SIGNAL_ELIF(E, KeyEvent, Up)
         STATIC_EVENT_ELSE_FALSE
     }
 };

@@ -14,12 +14,13 @@
 
 
 using abollo::Application;
+using abollo::Key;
 using abollo::KeyEvent;
 using abollo::MouseEvent;
-using abollo::Key;
 using abollo::MouseMask;
 using abollo::SubSystem;
 using abollo::Window;
+using abollo::WindowEvent;
 
 
 
@@ -30,8 +31,18 @@ int main(int /*argc*/, char* /*argv*/[])
 
     lApp.Register(lWindow);
 
-    // lWindow.On<MouseEvent::eLButtonDown>([](const Sint32 aPosX, const Sint32 aPosY) { std::cout << "Left button down: " << aPosX << "," << aPosY << "\n"; });
-    // lWindow.On<MouseEvent::eLButtonUp>([](const Sint32 aPosX, const Sint32 aPosY) { std::cout << "Left button up: " << aPosX << "," << aPosY << "\n"; });
+    lWindow.On<MouseEvent::eLButtonDown>([&lWindow](const Sint32 aPosX, const Sint32 aPosY) {
+        std::cout << "Left button down: " << aPosX << "," << aPosY << "\n";
+        // lWindow.RemoveBorder();
+        // lWindow.SetOpacity(0.5f);
+        // lWindow.ShowMessage(abollo::MessageType::eError, "Title", "Message");
+    });
+
+    lWindow.On<MouseEvent::eRButtonDown>([&lWindow](const Sint32 aPosX, const Sint32 aPosY) {
+        std::cout << "Right button up: " << aPosX << "," << aPosY << "\n";
+        // lWindow.AddBorder();
+    });
+
     /*lWindow.On<MouseEvent::eMotion>([](const Sint32 aPosX, const Sint32 aPosY, const Sint32 aPosRelX, const Sint32 aPosRelY, const Uint32 aMask) {
         fmt::print("Mouse moved to ({}, {}) -> ({}, {})\n", aPosX, aPosY, aPosRelX, aPosRelY);
 
@@ -53,20 +64,14 @@ int main(int /*argc*/, char* /*argv*/[])
 
     lWindow.On<MouseEvent::eWheel>([](const Sint32 aPosX, const Sint32 aPosY) { fmt::print("Mouse wheel: {}, {}\n", aPosX, aPosY); });
 
-    lWindow.On<KeyEvent::eDown>([](const Key aKey, const Uint16 aModifier)
-    {
-        fmt::print("key pressed: {} -> {}\n", aKey, aModifier);
-    });
+    lWindow.On<KeyEvent::eDown>([](const Key aKey, const Uint16 aModifier) { fmt::print("key pressed: {} -> {}\n", aKey, aModifier); });
 
-    /*lWindow.Set<Event::eMouseButtonDown>(
-        [](auto&& e) { std::cout << "Mouse Down: " << e.x << "\t" << e.y << std::endl; });
-    lWindow.Set<Event::eMouseButtonUp>([](auto&& e) { std::cout << "Mouse Up: " << e.x << "\t" << e.y << std::endl; });
+    lWindow.On<WindowEvent::eMoved>([&lWindow](const Sint32, const Sint32) { std::cout << "Display index: " << lWindow.GetDisplayIndex() << std::endl; });
+    lWindow.On<WindowEvent::eEnter>([]() { std::cout << "Entered\n"; });
+    lWindow.On<WindowEvent::eResized>([](const Sint32 aWidth, const Sint32 aHeight) { fmt::print("Window resized to {}, {}\n", aWidth, aHeight); });
 
-    lWindow.Set<Event::eKeyDown>(
-        [](auto&& e) { std::cout << "Key down: " << e.keysym.scancode << "\t" << e.keysym.sym << std::endl; });
-
-    lWindow.Set<Event::eKeyUp>(
-        [](auto&& e) { std::cout << "Key up: " << e.keysym.scancode << "\t" << e.keysym.sym << std::endl; });*/
+    /*const auto [lWidth, lHeight] = lWindow.GetSize();
+    lWidth, lHeight;*/
 
     lApp.Run();
 

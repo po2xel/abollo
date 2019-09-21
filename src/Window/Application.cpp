@@ -9,7 +9,79 @@ namespace abollo
 
 
 
-void Application::OnMouseButtonDownEvent(const MouseButtonEvent& aEvent) const
+void Application::OnWindowEvent(const SDL_WindowEvent& aEvent) const
+{
+    const auto& lWindow = mWindows.at(aEvent.windowID);
+
+    switch (static_cast<WindowEvent>(aEvent.event))
+    {
+    case WindowEvent::eShown:
+        lWindow.Signal<WindowEvent::eShown>();
+        break;
+
+    case WindowEvent::eHidden:
+        lWindow.Signal<WindowEvent::eHidden>();
+        break;
+
+    case WindowEvent::eExposed:
+        lWindow.Signal<WindowEvent::eExposed>();
+        break;
+
+    case WindowEvent::eMoved:
+        lWindow.Signal<WindowEvent::eMoved>(aEvent.data1, aEvent.data2);
+        break;
+
+    case WindowEvent::eResized:
+        lWindow.Signal<WindowEvent::eResized>(aEvent.data1, aEvent.data2);
+        break;
+
+    case WindowEvent::eSizeChanged:
+        lWindow.Signal<WindowEvent::eSizeChanged>();
+        break;
+
+    case WindowEvent::eMinimized:
+        lWindow.Signal<WindowEvent::eMinimized>();
+        break;
+
+    case WindowEvent::eMaximized:
+        lWindow.Signal<WindowEvent::eMaximized>();
+        break;
+
+    case WindowEvent::eRestored:
+        lWindow.Signal<WindowEvent::eRestored>();
+        break;
+
+    case WindowEvent::eEnter:
+        lWindow.Signal<WindowEvent::eEnter>();
+        break;
+
+    case WindowEvent::eLeave:
+        lWindow.Signal<WindowEvent::eLeave>();
+        break;
+
+    case WindowEvent::eFocusGained:
+        lWindow.Signal<WindowEvent::eFocusGained>();
+        break;
+
+    case WindowEvent::eFocusLost:
+        lWindow.Signal<WindowEvent::eFocusLost>();
+        break;
+
+    case WindowEvent::eClose:
+        lWindow.Signal<WindowEvent::eClose>();
+        break;
+
+    case WindowEvent::eTakeFocus:
+        lWindow.Signal<WindowEvent::eTakeFocus>();
+        break;
+
+    case WindowEvent::eHitTest:
+        lWindow.Signal<WindowEvent::eHitTest>();
+        break;
+    }
+}
+
+void Application::OnMouseButtonDownEvent(const SDL_MouseButtonEvent& aEvent) const
 {
     const auto& lWindow = mWindows.at(aEvent.windowID);
 
@@ -38,7 +110,7 @@ void Application::OnMouseButtonDownEvent(const MouseButtonEvent& aEvent) const
 }
 
 
-void Application::OnMouseButtonUpEvent(const MouseButtonEvent& aEvent) const
+void Application::OnMouseButtonUpEvent(const SDL_MouseButtonEvent& aEvent) const
 {
     const auto& lWindow = mWindows.at(aEvent.windowID);
 
@@ -67,7 +139,7 @@ void Application::OnMouseButtonUpEvent(const MouseButtonEvent& aEvent) const
 }
 
 
-void Application::OnMouseMotionEvent(const MouseMotionEvent& aEvent) const
+void Application::OnMouseMotionEvent(const SDL_MouseMotionEvent& aEvent) const
 {
     const auto& lWindow = mWindows.at(aEvent.windowID);
 
@@ -75,7 +147,7 @@ void Application::OnMouseMotionEvent(const MouseMotionEvent& aEvent) const
 }
 
 
-void Application::OnMouseWheelEvent(const MouseWheelEvent& aEvent) const
+void Application::OnMouseWheelEvent(const SDL_MouseWheelEvent& aEvent) const
 {
     const auto& lWindow = mWindows.at(aEvent.windowID);
 
@@ -83,14 +155,14 @@ void Application::OnMouseWheelEvent(const MouseWheelEvent& aEvent) const
 }
 
 
-void Application::OnKeyDownEvent(const KeyboardEvent& aEvent) const
+void Application::OnKeyDownEvent(const SDL_KeyboardEvent& aEvent) const
 {
     const auto& lWindow = mWindows.at(aEvent.windowID);
 
     lWindow.Signal<KeyEvent::eDown>(static_cast<Key>(aEvent.keysym.sym), aEvent.keysym.mod);
 }
 
-void Application::OnKeyUpEvent(const KeyboardEvent& aEvent) const
+void Application::OnKeyUpEvent(const SDL_KeyboardEvent& aEvent) const
 {
     const auto& lWindow = mWindows.at(aEvent.windowID);
 
@@ -110,9 +182,9 @@ void Application::Run() const
     {
         switch (lEvent.type)
         {
-            /*case SDL_WINDOWEVENT:
-                mWindows.at(lEvent.window.windowID).On<Event::eWindowEvent>(lEvent.window);
-                break;*/
+        case SDL_WINDOWEVENT:
+            OnWindowEvent(lEvent.window);
+            break;
 
         case SDL_MOUSEMOTION:
             OnMouseMotionEvent(lEvent.motion);
@@ -135,7 +207,7 @@ void Application::Run() const
             break;
 
         case SDL_KEYUP:
-            OnKeyDownEvent(lEvent.key);
+            OnKeyUpEvent(lEvent.key);
             break;
 
         default:
