@@ -43,10 +43,12 @@ int main(int /*argc*/, char* /*argv*/[])
     lWindow.On<MouseEvent::eLButtonDown>([&lWindow](const Sint32 aPosX, const Sint32 aPosY) {
         std::cout << "Left button down: " << aPosX << "," << aPosY << "\n";
         lWindow.RemoveBorder();
+
+        lWindow.Off<MouseEvent::eLButtonDown>();
+
         // lWindow.SetOpacity(0.5f);
         // lWindow.ShowMessage(abollo::MessageType::eError, "Title", "Message");
     });
-
 
     lWindow.On<MouseEvent::eRButtonDown>([&lWindow](const Sint32 aPosX, const Sint32 aPosY) {
         std::cout << "Right button up: " << aPosX << "," << aPosY << "\n";

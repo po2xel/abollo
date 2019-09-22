@@ -15,6 +15,7 @@ namespace abollo
 
 
 using boost::signals2::connect_position;
+using boost::signals2::connection;
 using boost::signals2::signal;
 
 
@@ -163,17 +164,6 @@ enum class Key : Uint32
     eF10 = SDLK_F10,
     eF11 = SDLK_F11,
     eF12 = SDLK_F12,
-    eF14 = SDLK_F14,
-    eF15 = SDLK_F15,
-    eF16 = SDLK_F16,
-    eF17 = SDLK_F17,
-    eF18 = SDLK_F18,
-    eF19 = SDLK_F19,
-    eF20 = SDLK_F20,
-    eF21 = SDLK_F21,
-    eF22 = SDLK_F22,
-    eF23 = SDLK_F23,
-    eF24 = SDLK_F24,
 
     ePrintScreen = SDLK_PRINTSCREEN,
     eScrollLock  = SDLK_SCROLLLOCK,
@@ -253,12 +243,18 @@ class EventTrait
 {
 private:
     signal<void()> mSlot;
+    connection mConnection;
 
 public:
     template <typename Slot>
     void On(Slot&& aSlot, const connect_position aPos = connect_position::at_back)
     {
-        mSlot.connect(std::forward<Slot>(aSlot), aPos);
+        mConnection = mSlot.connect(std::forward<Slot>(aSlot), aPos);
+    }
+
+    void Off() const
+    {
+        mConnection.disconnect();
     }
 
     template <typename... Args>
@@ -275,12 +271,18 @@ class EventTrait<WindowEvent, WindowEvent::eMoved>
 {
 private:
     signal<void(const Sint32 aWidth, const Sint32 aHeight)> mSlot;
+    connection mConnection;
 
 public:
     template <typename Slot>
     void On(Slot&& aSlot, const connect_position aPos = connect_position::at_back)
     {
-        mSlot.connect(std::forward<Slot>(aSlot), aPos);
+        mConnection = mSlot.connect(std::forward<Slot>(aSlot), aPos);
+    }
+
+    void Off() const
+    {
+        mConnection.disconnect();
     }
 
     template <typename... Args>
@@ -297,12 +299,18 @@ class EventTrait<WindowEvent, WindowEvent::eResized>
 {
 private:
     signal<void(const Sint32 aWidth, const Sint32 aHeight)> mSlot;
+    connection mConnection;
 
 public:
     template <typename Slot>
     void On(Slot&& aSlot, const connect_position aPos = connect_position::at_back)
     {
-        mSlot.connect(std::forward<Slot>(aSlot), aPos);
+        mConnection = mSlot.connect(std::forward<Slot>(aSlot), aPos);
+    }
+
+    void Off() const
+    {
+        mConnection.disconnect();
     }
 
     template <typename... Args>
@@ -319,12 +327,18 @@ class EventTrait<MouseEvent, e>
 {
 private:
     signal<void(const Sint32 aPosX, const Sint32 aPosY)> mSlot;
+    connection mConnection;
 
 public:
     template <typename Slot>
     void On(Slot&& aSlot, const connect_position aPos = connect_position::at_back)
     {
-        mSlot.connect(std::forward<Slot>(aSlot), aPos);
+        mConnection = mSlot.connect(std::forward<Slot>(aSlot), aPos);
+    }
+
+    void Off() const
+    {
+        mConnection.disconnect();
     }
 
     template <typename... Args>
@@ -341,12 +355,18 @@ class EventTrait<MouseEvent, MouseEvent::eMotion>
 {
 private:
     signal<void(const Sint32 aPosX, const Sint32 aPosY, const Sint32 aPosRelX, const Sint32 aPosRelY, const Uint32 aMask)> mSlot;
+    connection mConnection;
 
 public:
     template <typename Slot>
     void On(Slot&& aSlot, const connect_position aPos = connect_position::at_back)
     {
-        mSlot.connect(std::forward<Slot>(aSlot), aPos);
+        mConnection = mSlot.connect(std::forward<Slot>(aSlot), aPos);
+    }
+
+    void Off() const
+    {
+        mConnection.disconnect();
     }
 
     template <typename... Args>
@@ -363,12 +383,18 @@ class EventTrait<KeyEvent, e>
 {
 private:
     signal<void(const Key aKey, const Uint16 aModifier)> mSlot;
+    connection mConnection;
 
 public:
     template <typename Slot>
     void On(Slot&& aSlot, const connect_position aPos = connect_position::at_back)
     {
-        mSlot.connect(std::forward<Slot>(aSlot), aPos);
+        mConnection = mSlot.connect(std::forward<Slot>(aSlot), aPos);
+    }
+
+    void Off() const
+    {
+        mConnection.disconnect();
     }
 
     template <typename... Args>
@@ -385,6 +411,11 @@ class FallbackEvent
 public:
     template <auto t, typename Slot>
     static constexpr void On(Slot&& /*aSlot*/)
+    {
+    }
+
+    template <auto t, typename Slot>
+    static constexpr void Off()
     {
     }
 
@@ -419,6 +450,17 @@ public:
             BaseEvent::template On<t>(std::forward<Slot>(aSlot));
     }
 
+    template <auto t>
+    constexpr void Off() const
+    {
+        using TraitType = internal::EventTrait<decltype(t), t>;
+
+        if constexpr (std::is_same_v<BaseTrait, TraitType>)
+            BaseTrait::Off();
+        else
+            BaseEvent::template Off<t>();
+    }
+
     template <auto t, typename... Args>
     constexpr void Signal(Args&&... aArgs) const
     {
@@ -450,6 +492,17 @@ public:
             BaseTrait::On(std::forward<Slot>(aSlot));
         else
             BaseEvent::On<t>(std::forward<Slot>(aSlot));
+    }
+
+    template <auto t>
+    constexpr void Off() const
+    {
+        using TraitType = internal::EventTrait<decltype(t), t>;
+
+        if constexpr (std::is_same_v<BaseTrait, TraitType>)
+            BaseTrait::Off();
+        else
+            BaseEvent::Off<t>();
     }
 
     template <auto t, typename... Args>
