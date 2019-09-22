@@ -27,11 +27,11 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Window\Application.cpp">
-      <Filter>Source Files\Window</Filter>
-    </ClCompile>
     <ClCompile Include="src\fmt\format.cc">
       <Filter>Source Files\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window\Application.cpp">
+      <Filter>Source Files\Window</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -48,6 +48,9 @@
       <Filter>Header Files\Window</Filter>
     </ClInclude>
     <ClInclude Include="inc\Window\EventSlot.h">
+      <Filter>Header Files\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Window\EventWindow.h">
       <Filter>Header Files\Window</Filter>
     </ClInclude>
   </ItemGroup>

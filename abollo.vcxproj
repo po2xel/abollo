@@ -172,6 +172,7 @@
   <ItemGroup>
     <ClInclude Include="inc\Window\Application.h" />
     <ClInclude Include="inc\Window\EventSlot.h" />
+    <ClInclude Include="inc\Window\EventWindow.h" />
     <ClInclude Include="inc\Window\NonCopyable.h" />
     <ClInclude Include="inc\Window\Singleton.h" />
     <ClInclude Include="inc\Window\Window.h" />

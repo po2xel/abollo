@@ -8,7 +8,6 @@
 
 
 
-#include "EventSlot.h"
 #include "NonCopyable.h"
 
 
@@ -19,8 +18,6 @@ namespace abollo
 
 
 using WindowHandle = SDL_Window;
-
-class Application;
 
 
 
@@ -33,31 +30,11 @@ enum class MessageType : Uint8
 
 
 
-class Window final : private internal::NonCopyable
+class Window : private internal::NonCopyable
 {
 private:
     Uint32 mWindowId;
     std::unique_ptr<WindowHandle, decltype(&SDL_DestroyWindow)> mWindow;
-
-    WindowEventSlot mWindowEventSlot;
-    MouseEventSlot mMouseEventSlot;
-    KeyEventSlot mKeyEventSlot;
-
-    friend class Application;
-
-
-    template <auto E, typename... Args>
-    constexpr void Signal(Args&&... aArgs) const
-    {
-        using EventType = decltype(E);
-
-        if constexpr (std::is_same_v<EventType, WindowEvent>)
-            mWindowEventSlot.Signal<E>(std::forward<Args>(aArgs)...);
-        else if constexpr (std::is_same_v<EventType, MouseEvent>)
-            mMouseEventSlot.Signal<E>(std::forward<Args>(aArgs)...);
-        else if constexpr (std::is_same_v<EventType, KeyEvent>)
-            mKeyEventSlot.Signal<E>(std::forward<Args>(aArgs)...);
-    }
 
 public:
     Window(const std::string_view aTitle, const int aPosX, const int aPosY, const int aWidth, const int aHeight, const Uint32 aFlags)
@@ -66,10 +43,20 @@ public:
         mWindowId = SDL_GetWindowID(mWindow.get());
     }
 
-    ~Window()
+    virtual ~Window()
     {
         mWindow = nullptr;
     }
+
+    virtual void OnWindowEvent(const SDL_WindowEvent& aEvent) const = 0;
+
+    virtual void OnMouseButtonDownEvent(const SDL_MouseButtonEvent& aEvent) const = 0;
+    virtual void OnMouseButtonUpEvent(const SDL_MouseButtonEvent& aEvent) const   = 0;
+    virtual void OnMouseMotionEvent(const SDL_MouseMotionEvent& aEvent) const     = 0;
+    virtual void OnMouseWheelEvent(const SDL_MouseWheelEvent& aEvent) const       = 0;
+
+    virtual void OnKeyDownEvent(const SDL_KeyboardEvent& aEvent) const = 0;
+    virtual void OnKeyUpEvent(const SDL_KeyboardEvent& aEvent) const   = 0;
 
     [[nodiscard]] Uint32 GetWindowId() const
     {
@@ -204,24 +191,11 @@ public:
         return 0 == SDL_SetWindowOpacity(mWindow.get(), aOpacity);
     }
 
-    bool ShowMessage(const MessageType aType, const std::string_view aTitle, const std::string_view aMessage)
+    bool ShowMessage(const MessageType aType, const std::string_view aTitle, const std::string_view aMessage) const
     {
         using Underlying = std::underlying_type_t<MessageType>;
 
         return 0 == SDL_ShowSimpleMessageBox(static_cast<Underlying>(aType), aTitle.data(), aMessage.data(), mWindow.get());
-    }
-
-    template <auto E, typename Slot>
-    constexpr void On(Slot&& aSlot)
-    {
-        using EventType = decltype(E);
-
-        if constexpr (std::is_same_v<EventType, WindowEvent>)
-            mWindowEventSlot.On<E>(std::forward<Slot>(aSlot));
-        else if constexpr (std::is_same_v<EventType, MouseEvent>)
-            mMouseEventSlot.On<E>(std::forward<Slot>(aSlot));
-        else if constexpr (std::is_same_v<EventType, KeyEvent>)
-            mKeyEventSlot.On<E>(std::forward<Slot>(aSlot));
     }
 };
 

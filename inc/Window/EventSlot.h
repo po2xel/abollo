@@ -14,6 +14,7 @@ namespace abollo
 
 
 
+using boost::signals2::connect_position;
 using boost::signals2::signal;
 
 
@@ -243,185 +244,223 @@ enum class KeyEvent : Uint8
 };
 
 
-// template <typename E, E e>
-// struct Event
-// {
-//     using type                  = E;
-//     static constexpr type value = e;
-// };
+namespace internal
+{
 
 
-
-
-#define STATIC_EVENT_CONNECT_IF(E, EventCat, EventType) \
-    if constexpr (E == EventCat::e##EventType)          \
-        m##EventType##Slot.connect(std::forward<Slot>(aSlot));
-
-#define STATIC_EVENT_CONNECT_ELIF(E, EventCat, EventType) else STATIC_EVENT_CONNECT_IF(E, EventCat, EventType)
-
-
-#define STATIC_EVENT_SIGNAL_IF(E, EventCat, EventType) \
-    if constexpr (E == EventCat::e##EventType)         \
-        std::invoke(m##EventType##Slot, std::forward<Args>(aArgs)...);
-
-#define STATIC_EVENT_SIGNAL_ELIF(E, EventCat, EventType) else STATIC_EVENT_SIGNAL_IF(E, EventCat, EventType)
-
-#define STATIC_EVENT_ELSE_FALSE else static_assert(false, "Event type is not supproted.");
-
-
-
-class WindowEventSlot
+template <typename T, T e>
+class EventTrait
 {
 private:
-    signal<void()> mShownSlot;
-    signal<void()> mHiddenSlot;
-    signal<void()> mExposedSlot;
-    signal<void()> mSizeChangedSlot;
-    signal<void()> mMinimizedSlot;
-    signal<void()> mMaximizedSlot;
-    signal<void()> mRestoredSlot;
-    signal<void()> mEnterSlot;
-    signal<void()> mLeaveSlot;
-    signal<void()> mFocusGainedSlot;
-    signal<void()> mFocusLostSlot;
-    signal<void()> mCloseSlot;
-    signal<void()> mTakeFocusSlot;
-    signal<void()> mHitTestSlot;
-
-    signal<void(const Sint32 aWidth, const Sint32 aHeight)> mMovedSlot;
-    signal<void(const Sint32 aWidth, const Sint32 aHeight)> mResizedSlot;
+    signal<void()> mSlot;
 
 public:
-    template <WindowEvent E, typename Slot>
-    constexpr void On(Slot&& aSlot)
+    template <typename Slot>
+    void On(Slot&& aSlot, const connect_position aPos = connect_position::at_back)
     {
-        STATIC_EVENT_CONNECT_IF(E, WindowEvent, Shown)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Hidden)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Exposed)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Moved)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Resized)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, SizeChanged)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Minimized)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Maximized)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Restored)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Enter)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Leave)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, FocusGained)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, FocusLost)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, Close)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, TakeFocus)
-        STATIC_EVENT_CONNECT_ELIF(E, WindowEvent, HitTest)
-        STATIC_EVENT_ELSE_FALSE
+        mSlot.connect(std::forward<Slot>(aSlot), aPos);
     }
 
-    template <WindowEvent E, typename... Args>
-    constexpr void Signal(Args&&... aArgs) const
+    template <typename... Args>
+    void Signal(Args&&... aArgs) const
     {
-        STATIC_EVENT_SIGNAL_IF(E, WindowEvent, Shown)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Hidden)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Exposed)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Moved)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Resized)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, SizeChanged)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Minimized)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Maximized)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Restored)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Enter)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Leave)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, FocusGained)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, FocusLost)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, Close)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, TakeFocus)
-        STATIC_EVENT_SIGNAL_ELIF(E, WindowEvent, HitTest)
-        STATIC_EVENT_ELSE_FALSE
-    }
-};
-
-
-class MouseEventSlot
-{
-private:
-    signal<void(const Sint32 aPosX, const Sint32 aPosY)> mLButtonDownSlot;
-    signal<void(const Sint32 aPosX, const Sint32 aPosY)> mLButtonUpSlot;
-
-    signal<void(const Sint32 aPosX, const Sint32 aPosY)> mMButtonDownSlot;
-    signal<void(const Sint32 aPosX, const Sint32 aPosY)> mMButtonUpSlot;
-
-    signal<void(const Sint32 aPosX, const Sint32 aPosY)> mRButtonDownSlot;
-    signal<void(const Sint32 aPosX, const Sint32 aPosY)> mRButtonUpSlot;
-
-    signal<void(const Sint32 aPosX, const Sint32 aPosY)> mX1ButtonDownSlot;
-    signal<void(const Sint32 aPosX, const Sint32 aPosY)> mX1ButtonUpSlot;
-
-    signal<void(const Sint32 aPosX, const Sint32 aPosY)> mX2ButtonDownSlot;
-    signal<void(const Sint32 aPosX, const Sint32 aPosY)> mX2ButtonUpSlot;
-
-    signal<void(const Sint32 aPosX, const Sint32 aPosY)> mWheelSlot;
-
-    signal<void(const Sint32 aPosX, const Sint32 aPosY, const Sint32 aPosRelX, const Sint32 aPosRelY, const Uint32 aMask)> mMotionSlot;
-
-public:
-    template <MouseEvent E, typename Slot>
-    constexpr void On(Slot&& aSlot)
-    {
-        STATIC_EVENT_CONNECT_IF(E, MouseEvent, LButtonDown)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, LButtonUp)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, MButtonDown)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, MButtonUp)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, RButtonDown)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, RButtonUp)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, X1ButtonDown)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, X1ButtonUp)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, X2ButtonDown)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, X2ButtonUp)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, Wheel)
-        STATIC_EVENT_CONNECT_ELIF(E, MouseEvent, Motion)
-        STATIC_EVENT_ELSE_FALSE
-    }
-
-
-    template <MouseEvent E, typename... Args>
-    constexpr void Signal(Args&&... aArgs) const
-    {
-        STATIC_EVENT_SIGNAL_IF(E, MouseEvent, LButtonDown)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, LButtonUp)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, MButtonDown)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, MButtonUp)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, RButtonDown)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, RButtonUp)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, X1ButtonDown)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, X1ButtonUp)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, X2ButtonDown)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, X2ButtonUp)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, Wheel)
-        STATIC_EVENT_SIGNAL_ELIF(E, MouseEvent, Motion)
-        STATIC_EVENT_ELSE_FALSE
+        std::invoke(mSlot, std::forward<Args>(aArgs)...);
     }
 };
 
 
 
-class KeyEventSlot
+template <>
+class EventTrait<WindowEvent, WindowEvent::eMoved>
 {
 private:
-    signal<void(const Key aKey, const Uint16 aModifier)> mDownSlot;
-    signal<void(const Key aKey, const Uint16 aModifier)> mUpSlot;
+    signal<void(const Sint32 aWidth, const Sint32 aHeight)> mSlot;
 
 public:
-    template <KeyEvent E, typename Slot>
-    constexpr void On(Slot&& aSlot)
+    template <typename Slot>
+    void On(Slot&& aSlot, const connect_position aPos = connect_position::at_back)
     {
-        STATIC_EVENT_CONNECT_IF(E, KeyEvent, Down)
-        STATIC_EVENT_CONNECT_ELIF(E, KeyEvent, Up)
-        STATIC_EVENT_ELSE_FALSE
+        mSlot.connect(std::forward<Slot>(aSlot), aPos);
     }
 
-    template <KeyEvent E, typename... Args>
+    template <typename... Args>
+    void Signal(Args&&... aArgs) const
+    {
+        std::invoke(mSlot, std::forward<Args>(aArgs)...);
+    }
+};
+
+
+
+template <>
+class EventTrait<WindowEvent, WindowEvent::eResized>
+{
+private:
+    signal<void(const Sint32 aWidth, const Sint32 aHeight)> mSlot;
+
+public:
+    template <typename Slot>
+    void On(Slot&& aSlot, const connect_position aPos = connect_position::at_back)
+    {
+        mSlot.connect(std::forward<Slot>(aSlot), aPos);
+    }
+
+    template <typename... Args>
+    void Signal(Args&&... aArgs) const
+    {
+        std::invoke(mSlot, std::forward<Args>(aArgs)...);
+    }
+};
+
+
+
+template <MouseEvent e>
+class EventTrait<MouseEvent, e>
+{
+private:
+    signal<void(const Sint32 aPosX, const Sint32 aPosY)> mSlot;
+
+public:
+    template <typename Slot>
+    void On(Slot&& aSlot, const connect_position aPos = connect_position::at_back)
+    {
+        mSlot.connect(std::forward<Slot>(aSlot), aPos);
+    }
+
+    template <typename... Args>
+    void Signal(Args&&... aArgs) const
+    {
+        std::invoke(mSlot, std::forward<Args>(aArgs)...);
+    }
+};
+
+
+
+template <>
+class EventTrait<MouseEvent, MouseEvent::eMotion>
+{
+private:
+    signal<void(const Sint32 aPosX, const Sint32 aPosY, const Sint32 aPosRelX, const Sint32 aPosRelY, const Uint32 aMask)> mSlot;
+
+public:
+    template <typename Slot>
+    void On(Slot&& aSlot, const connect_position aPos = connect_position::at_back)
+    {
+        mSlot.connect(std::forward<Slot>(aSlot), aPos);
+    }
+
+    template <typename... Args>
+    void Signal(Args&&... aArgs) const
+    {
+        std::invoke(mSlot, std::forward<Args>(aArgs)...);
+    }
+};
+
+
+
+template <KeyEvent e>
+class EventTrait<KeyEvent, e>
+{
+private:
+    signal<void(const Key aKey, const Uint16 aModifier)> mSlot;
+
+public:
+    template <typename Slot>
+    void On(Slot&& aSlot, const connect_position aPos = connect_position::at_back)
+    {
+        mSlot.connect(std::forward<Slot>(aSlot), aPos);
+    }
+
+    template <typename... Args>
+    void Signal(Args&&... aArgs) const
+    {
+        std::invoke(mSlot, std::forward<Args>(aArgs)...);
+    }
+};
+
+
+
+class FallbackEvent
+{
+public:
+    template <auto t, typename Slot>
+    static constexpr void On(Slot&& /*aSlot*/)
+    {
+    }
+
+    template <auto t, typename... Args>
+    static constexpr void Signal(Args&&... /*aArgs*/)
+    {
+    }
+};
+
+
+
+}    // namespace internal
+
+
+
+template <auto e, auto... Es>
+class Event : public internal::EventTrait<decltype(e), e>, public Event<Es...>
+{
+private:
+    using BaseTrait = internal::EventTrait<decltype(e), e>;
+    using BaseEvent = Event<Es...>;
+
+public:
+    template <auto t, typename Slot>
+    constexpr void On(Slot&& aSlot)
+    {
+        using TraitType = internal::EventTrait<decltype(t), t>;
+
+        if constexpr (std::is_same_v<BaseTrait, TraitType>)
+            BaseTrait::On(std::forward<Slot>(aSlot));
+        else
+            BaseEvent::template On<t>(std::forward<Slot>(aSlot));
+    }
+
+    template <auto t, typename... Args>
     constexpr void Signal(Args&&... aArgs) const
     {
-        STATIC_EVENT_SIGNAL_IF(E, KeyEvent, Down)
-        STATIC_EVENT_SIGNAL_ELIF(E, KeyEvent, Up)
-        STATIC_EVENT_ELSE_FALSE
+        using TraitType = internal::EventTrait<decltype(t), t>;
+
+        if constexpr (std::is_same_v<BaseTrait, TraitType>)
+            BaseTrait::Signal(std::forward<Args>(aArgs)...);
+        else
+            BaseEvent::template Signal<t>(std::forward<Args>(aArgs)...);
+    }
+};
+
+
+
+template <auto e>
+class Event<e> : public internal::EventTrait<decltype(e), e>, public internal::FallbackEvent
+{
+private:
+    using BaseTrait = internal::EventTrait<decltype(e), e>;
+    using BaseEvent = internal::FallbackEvent;
+
+public:
+    template <auto t, typename Slot>
+    constexpr void On(Slot&& aSlot)
+    {
+        using TraitType = internal::EventTrait<decltype(t), t>;
+
+        if constexpr (std::is_same_v<BaseTrait, TraitType>)
+            BaseTrait::On(std::forward<Slot>(aSlot));
+        else
+            BaseEvent::On<t>(std::forward<Slot>(aSlot));
+    }
+
+    template <auto t, typename... Args>
+    constexpr void Signal(Args&&... aArgs) const
+    {
+        using TraitType = internal::EventTrait<decltype(t), t>;
+
+        if constexpr (std::is_same_v<BaseTrait, TraitType>)
+            BaseTrait::Signal(std::forward<Args>(aArgs)...);
+        else
+            BaseEvent::Signal<t>(std::forward<Args>(aArgs)...);
     }
 };
 

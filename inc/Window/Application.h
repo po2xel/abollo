@@ -50,16 +50,6 @@ class Application final : private internal::Singleton<Application>
 private:
     std::unordered_map<Uint32, const Window&> mWindows;
 
-    void OnWindowEvent(const SDL_WindowEvent& aEvent) const;
-
-    void OnMouseButtonDownEvent(const SDL_MouseButtonEvent& aEvent) const;
-    void OnMouseButtonUpEvent(const SDL_MouseButtonEvent& aEvent) const;
-    void OnMouseMotionEvent(const SDL_MouseMotionEvent& aEvent) const;
-    void OnMouseWheelEvent(const SDL_MouseWheelEvent& aEvent) const;
-
-    void OnKeyDownEvent(const SDL_KeyboardEvent& aEvent) const;
-    void OnKeyUpEvent(const SDL_KeyboardEvent& aEvent) const;
-
 public:
     using Singleton<Application>::Instance;
 
