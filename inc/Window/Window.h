@@ -8,7 +8,7 @@
 
 
 
-#include "NonCopyable.h"
+#include "Utility/NonCopyable.h"
 
 
 
@@ -80,6 +80,15 @@ public:
     void SetPos(const int aPosX, const int aPosY) const
     {
         SDL_SetWindowPosition(mWindow.get(), aPosX, aPosY);
+    }
+
+    [[nodiscard]] std::pair<int, int> GetDrawableSize() const
+    {
+        auto lWidth = 0, lHeight = 0;
+
+        SDL_GL_GetDrawableSize(mWindow.get(), &lWidth, &lHeight);
+
+        return {lWidth, lHeight};
     }
 
     [[nodiscard]] std::pair<int, int> GetSize() const

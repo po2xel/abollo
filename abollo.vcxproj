@@ -167,14 +167,16 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\fmt\format.cc" />
+    <ClCompile Include="src\Graphics\VulkanContext.cpp" />
     <ClCompile Include="src\Window\Application.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inc\Graphics\VulkanContext.h" />
+    <ClInclude Include="inc\Utility\NonCopyable.h" />
+    <ClInclude Include="inc\Utility\Singleton.h" />
     <ClInclude Include="inc\Window\Application.h" />
     <ClInclude Include="inc\Window\EventSlot.h" />
     <ClInclude Include="inc\Window\EventWindow.h" />
-    <ClInclude Include="inc\Window\NonCopyable.h" />
-    <ClInclude Include="inc\Window\Singleton.h" />
     <ClInclude Include="inc\Window\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

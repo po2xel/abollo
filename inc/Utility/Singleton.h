@@ -1,5 +1,5 @@
-#ifndef __ABOLLO_WINDOW_SINGLETON_H__
-#define __ABOLLO_WINDOW_SINGLETON_H__
+#ifndef __ABOLLO_UTILITY_SINGLETON_H__
+#define __ABOLLO_UTILITY_SINGLETON_H__
 
 
 
@@ -33,4 +33,4 @@ public:
 
 
 
-#endif    // !__ABOLLO_WINDOW_SINGLETON_H__
+#endif    // !__ABOLLO_UTILITY_SINGLETON_H__

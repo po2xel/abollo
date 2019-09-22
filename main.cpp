@@ -8,6 +8,8 @@
 
 #include <fmt/format.h>
 
+#include <vulkan/vulkan.h>
+
 #include "Window/Application.h"
 #include "Window/EventSlot.h"
 #include "Window/EventWindow.h"
@@ -28,10 +30,20 @@ using abollo::WindowEvent;
 
 int main(int /*argc*/, char* /*argv*/[])
 {
+    //const VkApplicationInfo app = {
+    //    .sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+    //    .pNext              = NULL,
+    //    // .pApplicationName   = APP_SHORT_NAME,
+    //    .applicationVersion = 0,
+    //    // .pEngineName        = APP_SHORT_NAME,
+    //    .engineVersion      = 0,
+    //    .apiVersion         = VK_API_VERSION_1_0,
+    //};
+
     auto& lApp = Application::Instance(SubSystem::eVideo);
     EventWindow<MouseEvent::eLButtonDown, MouseEvent::eRButtonDown, MouseEvent::eMotion, MouseEvent::eWheel, KeyEvent::eDown, KeyEvent::eUp, WindowEvent::eShown,
                 WindowEvent::eMoved, WindowEvent::eResized, WindowEvent::eEnter>
-        lWindow{"Hello World", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768, SDL_WINDOW_RESIZABLE};
+        lWindow{"Hello World", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768, SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN};
 
     /*abollo::Event<MouseEvent::eLButtonDown, MouseEvent::eRButtonDown, MouseEvent::eMotion, MouseEvent::eWheel, KeyEvent::eDown, KeyEvent::eUp, WindowEvent::eShown,
         WindowEvent::eMoved, WindowEvent::eResized, WindowEvent::eEnter> e;

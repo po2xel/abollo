@@ -9,7 +9,7 @@
 
 #include <SDL2/SDL.h>
 
-#include "Singleton.h"
+#include "Utility/Singleton.h"
 
 
 

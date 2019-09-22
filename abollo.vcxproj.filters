@@ -22,6 +22,15 @@
     <Filter Include="Source Files\fmt">
       <UniqueIdentifier>{ce592a1b-7819-42b4-ab14-5269327be014}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics">
+      <UniqueIdentifier>{03c57f28-f866-4ab8-9c76-72dd7a8363e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Utility">
+      <UniqueIdentifier>{81c57dc8-bb9b-4863-a7c6-4216ad2a1263}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics">
+      <UniqueIdentifier>{c0913df6-87f0-4991-859c-9e24aa1b4ea8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -33,15 +42,12 @@
     <ClCompile Include="src\Window\Application.cpp">
       <Filter>Source Files\Window</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\VulkanContext.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\Window\Application.h">
-      <Filter>Header Files\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\Window\Singleton.h">
-      <Filter>Header Files\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\Window\NonCopyable.h">
       <Filter>Header Files\Window</Filter>
     </ClInclude>
     <ClInclude Include="inc\Window\Window.h">
@@ -52,6 +58,15 @@
     </ClInclude>
     <ClInclude Include="inc\Window\EventWindow.h">
       <Filter>Header Files\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\VulkanContext.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Utility\NonCopyable.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Utility\Singleton.h">
+      <Filter>Header Files\Utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
