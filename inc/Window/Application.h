@@ -3,6 +3,7 @@
 
 
 
+#include <memory>
 #include <stdexcept>
 #include <unordered_map>
 
@@ -45,15 +46,35 @@ constexpr auto operator|(const SubSystem& aLhs, const SubSystem& aRhs)
 
 
 
+enum class CursorType : Uint8
+{
+    eArrow     = SDL_SYSTEM_CURSOR_ARROW,
+    eIBeam     = SDL_SYSTEM_CURSOR_IBEAM,
+    eWait      = SDL_SYSTEM_CURSOR_WAIT,
+    eCrossHair = SDL_SYSTEM_CURSOR_CROSSHAIR,
+    eWaitArrow = SDL_SYSTEM_CURSOR_WAITARROW,
+    eSizeNWSE  = SDL_SYSTEM_CURSOR_SIZENWSE,
+    eSizeNESW  = SDL_SYSTEM_CURSOR_SIZENESW,
+    eSizeWE    = SDL_SYSTEM_CURSOR_SIZEWE,
+    eSizeNS    = SDL_SYSTEM_CURSOR_SIZENS,
+    eSizeAll   = SDL_SYSTEM_CURSOR_SIZEALL,
+    eNo        = SDL_SYSTEM_CURSOR_NO,
+    eHand      = SDL_SYSTEM_CURSOR_HAND
+
+};
+
+
+
 class Application final : private internal::Singleton<Application>
 {
 private:
     std::unordered_map<Uint32, const Window&> mWindows;
+    std::unique_ptr<SDL_Cursor, decltype(&SDL_FreeCursor)> mCursor;
 
 public:
     using Singleton<Application>::Instance;
 
-    explicit Application(const SubSystem& aFlags)
+    explicit Application(const SubSystem& aFlags) : mCursor(nullptr, &SDL_FreeCursor)
     {
         if (const auto ret = SDL_Init(static_cast<Uint32>(aFlags)); ret != 0)
             throw std::runtime_error("Failed to initialize SDL subsystems.");
@@ -64,14 +85,37 @@ public:
         SDL_Quit();
     }
 
+    void Register(const Window& aWindow);
+    void Run() const;
+
     const Window& GetWindow(const Uint32 aWindowId)
     {
         return mWindows.at(aWindowId);
     }
 
-    void Register(const Window& aWindow);
-    void Run() const;
+    void SetCursor(const CursorType aCursorType)
+    {
+        using Underlying = std::underlying_type_t<CursorType>;
 
+        mCursor.reset(SDL_CreateSystemCursor(static_cast<SDL_SystemCursor>(static_cast<Underlying>(aCursorType))));
+
+        SDL_SetCursor(mCursor.get());
+    }
+
+    [[maybe_unused]] static bool ShowCursor()
+    {
+        return SDL_ENABLE == SDL_ShowCursor(SDL_ENABLE);
+    }
+
+    [[maybe_unused]] static bool HideCursor()
+    {
+        return SDL_DISABLE == SDL_ShowCursor(SDL_DISABLE);
+    }
+
+    [[maybe_unused]] static bool IsCursorShown()
+    {
+        return SDL_ENABLE == SDL_ShowCursor(SDL_QUERY);
+    }
 
     static void DisableScreenSaver()    // Prevent the screen from being blanked by a screen saver.
     {

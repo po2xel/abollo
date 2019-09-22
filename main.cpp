@@ -15,6 +15,7 @@
 
 
 using abollo::Application;
+using abollo::CursorType;
 using abollo::EventWindow;
 using abollo::Key;
 using abollo::KeyEvent;
@@ -40,19 +41,21 @@ int main(int /*argc*/, char* /*argv*/[])
 
     lApp.Register(lWindow);
 
-    lWindow.On<MouseEvent::eLButtonDown>([&lWindow](const Sint32 aPosX, const Sint32 aPosY) {
+    lWindow.On<MouseEvent::eLButtonDown>([&lWindow, &lApp](const Sint32 aPosX, const Sint32 aPosY) {
         std::cout << "Left button down: " << aPosX << "," << aPosY << "\n";
         lWindow.RemoveBorder();
+        lApp.SetCursor(CursorType::eHand);
 
-        lWindow.Off<MouseEvent::eLButtonDown>();
+        // lWindow.Off<MouseEvent::eLButtonDown>();
 
         // lWindow.SetOpacity(0.5f);
         // lWindow.ShowMessage(abollo::MessageType::eError, "Title", "Message");
     });
 
-    lWindow.On<MouseEvent::eRButtonDown>([&lWindow](const Sint32 aPosX, const Sint32 aPosY) {
+    lWindow.On<MouseEvent::eRButtonDown>([&lWindow, &lApp](const Sint32 aPosX, const Sint32 aPosY) {
         std::cout << "Right button up: " << aPosX << "," << aPosY << "\n";
         lWindow.AddBorder();
+        lApp.SetCursor(CursorType::eWaitArrow);
     });
 
     lWindow.On<MouseEvent::eMotion>([](const Sint32 aPosX, const Sint32 aPosY, const Sint32 aPosRelX, const Sint32 aPosRelY, const Uint32 aMask) {
