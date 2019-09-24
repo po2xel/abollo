@@ -32,11 +32,11 @@ using abollo::WindowEvent;
 
 int main(int /*argc*/, char* /*argv*/[])
 {
-    VulkanContext lVulkanContext{"Hello World", 1, "", 0};
-    lVulkanContext;
-
     auto& lApp = Application::Instance(SubSystem::eVideo);
     Window lWindow{"Hello World", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768, SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN};
+
+    VulkanContext lVulkanContext{lWindow, "Hello World", 1, "", 0};
+    lVulkanContext;
 
     Event<MouseEvent::eLButtonDown, MouseEvent::eRButtonDown, MouseEvent::eMotion, MouseEvent::eWheel, KeyEvent::eDown, KeyEvent::eUp, WindowEvent::eShown, WindowEvent::eMoved,
           WindowEvent::eResized, WindowEvent::eEnter>

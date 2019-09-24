@@ -19,6 +19,11 @@ namespace abollo
 {
 
 
+
+class Window;
+
+
+
 class VulkanContext final : private internal::NonCopyable
 {
 private:
@@ -29,13 +34,17 @@ private:
     };
 
     VkInstance mInstance{VK_NULL_HANDLE};
+    VkSurfaceKHR mSurface{VK_NULL_HANDLE};
+
     VkPhysicalDevice mPhysicalDevice{VK_NULL_HANDLE};
     DeviceQueue mGraphicsQueue;
     DeviceQueue mPresentQueue;
     VkDevice mDevice{VK_NULL_HANDLE};
 
+    [[nodiscard]] bool IsSurfaceSupported(const uint32_t aQueueFamilyIndex) const;
+
 public:
-    VulkanContext(const std::string_view aAppName, const uint32_t aAppVersion, const std::string_view aEngineName, const uint32_t aEngineVersion);
+    VulkanContext(const Window& aWindow, const std::string_view aAppName, const uint32_t aAppVersion, const std::string_view aEngineName, const uint32_t aEngineVersion);
     ~VulkanContext();
 };
 

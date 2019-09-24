@@ -4,7 +4,10 @@
 #include <cassert>
 #include <vector>
 
+#include <SDL2/SDL_vulkan.h>
 #include <fmt/format.h>
+
+#include "Window/Window.h"
 
 
 
@@ -90,9 +93,22 @@ VkInstance CreateInstance(const std::string_view aAppName, const uint32_t aAppVe
 
 
 
-VulkanContext::VulkanContext(const std::string_view aAppName, const uint32_t aAppVersion, const std::string_view aEngineName, const uint32_t aEngineVersion)
+bool VulkanContext::IsSurfaceSupported(const uint32_t aQueueFamilyIndex) const
+{
+    VkBool32 lIsSupported{VK_FALSE};
+
+    vk::ThrowIfFailed(vkGetPhysicalDeviceSurfaceSupportKHR(mPhysicalDevice, aQueueFamilyIndex, mSurface, &lIsSupported));
+
+    return VK_TRUE == lIsSupported;
+}
+
+
+VulkanContext::VulkanContext(const Window& aWindow, const std::string_view aAppName, const uint32_t aAppVersion, const std::string_view aEngineName, const uint32_t aEngineVersion)
     : mInstance(vk::CreateInstance(aAppName, aAppVersion, aEngineName, aEngineVersion))
 {
+    if (SDL_TRUE != SDL_Vulkan_CreateSurface(aWindow.GetHandle(), mInstance, &mSurface))
+        throw std::runtime_error("Failed to create vulkan surface");
+
     uint32_t lPhysicalDeviceCount{0};
     vk::ThrowIfFailed(vkEnumeratePhysicalDevices(mInstance, &lPhysicalDeviceCount, nullptr));
     assert(lPhysicalDeviceCount != 0);
@@ -138,7 +154,7 @@ VulkanContext::VulkanContext(const std::string_view aAppName, const uint32_t aAp
 
         for (uint32_t lIndex = 0; lIndex < lSize; ++lIndex)
         {
-            if (lQueueFamilyProperties.at(lIndex).queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            if ((lQueueFamilyProperties.at(lIndex).queueFlags & VK_QUEUE_GRAPHICS_BIT) && IsSurfaceSupported(lIndex))
             {
                 mGraphicsQueue.familyIndex = lIndex;
                 mPresentQueue.familyIndex  = lIndex;
@@ -146,13 +162,43 @@ VulkanContext::VulkanContext(const std::string_view aAppName, const uint32_t aAp
             }
         }
     }
+
+    constexpr float lQueuePriorities[]                 = {0.f};
+    const VkDeviceQueueCreateInfo lQueueCreateInfos[2] = {{.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                                                           .pNext            = nullptr,
+                                                           .flags            = 0,
+                                                           .queueFamilyIndex = mGraphicsQueue.familyIndex,
+                                                           .queueCount       = 1,
+                                                           .pQueuePriorities = lQueuePriorities},
+                                                          {.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                                                           .pNext            = nullptr,
+                                                           .flags            = 0,
+                                                           .queueFamilyIndex = mPresentQueue.familyIndex,
+                                                           .queueCount       = 1,
+                                                           .pQueuePriorities = lQueuePriorities}};
+
+    const uint32_t lQueueInfoCount = mGraphicsQueue.familyIndex != mPresentQueue.familyIndex ? 2 : 1;
+
+    const VkDeviceCreateInfo lDeviceCreateInfo{.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+                                               .pNext                   = nullptr,
+                                               .flags                   = 0,
+                                               .queueCreateInfoCount    = lQueueInfoCount,
+                                               .pQueueCreateInfos       = lQueueCreateInfos,
+                                               .enabledLayerCount       = 0,
+                                               .ppEnabledLayerNames     = nullptr,
+                                               .enabledExtensionCount   = 0,
+                                               .ppEnabledExtensionNames = nullptr,
+                                               .pEnabledFeatures        = nullptr};
+
+    vk::ThrowIfFailed(vkCreateDevice(mPhysicalDevice, &lDeviceCreateInfo, nullptr, &mDevice));
 }
 
 
 VulkanContext::~VulkanContext()
 {
-    vkDestroyInstance(mInstance, nullptr);
     vkDestroyDevice(mDevice, nullptr);
+    vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
+    vkDestroyInstance(mInstance, nullptr);
 }
 
 

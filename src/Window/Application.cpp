@@ -1,18 +1,11 @@
 #include "Window/Application.h"
 
-#include "Window/EventSlot.h"
+#include "Window/EventDispatcher.h"
 
 
 
 namespace abollo
 {
-
-
-
-void Application::Bind(const Uint32 aWindowId, const EventDispatcher& aEventDispatcher)
-{
-    mEventDispatchers.emplace(aWindowId, aEventDispatcher);
-}
 
 
 void Application::Run() const

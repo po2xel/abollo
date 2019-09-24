@@ -10,12 +10,15 @@
 #include <SDL2/SDL.h>
 
 #include "Utility/Singleton.h"
-#include "Window/EventDispatcher.h"
 
 
 
 namespace abollo
 {
+
+
+
+class EventDispatcher;
 
 
 
@@ -82,8 +85,12 @@ public:
         SDL_Quit();
     }
 
-    void Bind(const Uint32 aWindowId, const EventDispatcher& aWindow);
     void Run() const;
+
+    auto Bind(const Uint32 aWindowId, const EventDispatcher& aEventDispatcher)
+    {
+        return mEventDispatchers.try_emplace(aWindowId, aEventDispatcher);
+    }
 
     void SetCursor(const CursorType aCursorType)
     {
