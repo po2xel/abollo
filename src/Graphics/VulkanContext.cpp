@@ -179,6 +179,9 @@ VulkanContext::VulkanContext(const Window& aWindow, const std::string_view aAppN
 
     const uint32_t lQueueInfoCount = mGraphicsQueue.familyIndex != mPresentQueue.familyIndex ? 2 : 1;
 
+    VkPhysicalDeviceFeatures lPhysicalDeviceFeatures{};
+    vkGetPhysicalDeviceFeatures(mPhysicalDevice, &lPhysicalDeviceFeatures);
+
     const VkDeviceCreateInfo lDeviceCreateInfo{.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
                                                .pNext                   = nullptr,
                                                .flags                   = 0,
@@ -188,9 +191,12 @@ VulkanContext::VulkanContext(const Window& aWindow, const std::string_view aAppN
                                                .ppEnabledLayerNames     = nullptr,
                                                .enabledExtensionCount   = 0,
                                                .ppEnabledExtensionNames = nullptr,
-                                               .pEnabledFeatures        = nullptr};
+                                               .pEnabledFeatures        = &lPhysicalDeviceFeatures};
 
     vk::ThrowIfFailed(vkCreateDevice(mPhysicalDevice, &lDeviceCreateInfo, nullptr, &mDevice));
+
+    vkGetDeviceQueue(mDevice, mGraphicsQueue.familyIndex, 0, &mGraphicsQueue.handle);
+    vkGetDeviceQueue(mDevice, mPresentQueue.familyIndex, 0, &mPresentQueue.handle);
 }
 
 
