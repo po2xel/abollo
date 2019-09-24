@@ -8,52 +8,46 @@
 
 #include <fmt/format.h>
 
-#include <vulkan/vulkan.h>
-
+#include "Graphics/VulkanContext.h"
 #include "Window/Application.h"
+#include "Window/Event.h"
 #include "Window/EventSlot.h"
-#include "Window/EventWindow.h"
+#include "Window/Window.h"
 
 
 
 using abollo::Application;
 using abollo::CursorType;
-using abollo::EventWindow;
+using abollo::Event;
 using abollo::Key;
 using abollo::KeyEvent;
 using abollo::MouseEvent;
 using abollo::MouseMask;
 using abollo::SubSystem;
+using abollo::VulkanContext;
+using abollo::Window;
 using abollo::WindowEvent;
 
 
 
 int main(int /*argc*/, char* /*argv*/[])
 {
-    //const VkApplicationInfo app = {
-    //    .sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-    //    .pNext              = NULL,
-    //    // .pApplicationName   = APP_SHORT_NAME,
-    //    .applicationVersion = 0,
-    //    // .pEngineName        = APP_SHORT_NAME,
-    //    .engineVersion      = 0,
-    //    .apiVersion         = VK_API_VERSION_1_0,
-    //};
+    VulkanContext lVulkanContext{"Hello World", 1, "", 0};
+    lVulkanContext;
 
     auto& lApp = Application::Instance(SubSystem::eVideo);
-    EventWindow<MouseEvent::eLButtonDown, MouseEvent::eRButtonDown, MouseEvent::eMotion, MouseEvent::eWheel, KeyEvent::eDown, KeyEvent::eUp, WindowEvent::eShown,
-                WindowEvent::eMoved, WindowEvent::eResized, WindowEvent::eEnter>
-        lWindow{"Hello World", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768, SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN};
+    Window lWindow{"Hello World", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768, SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN};
 
-    /*abollo::Event<MouseEvent::eLButtonDown, MouseEvent::eRButtonDown, MouseEvent::eMotion, MouseEvent::eWheel, KeyEvent::eDown, KeyEvent::eUp, WindowEvent::eShown,
-        WindowEvent::eMoved, WindowEvent::eResized, WindowEvent::eEnter> e;
+    Event<MouseEvent::eLButtonDown, MouseEvent::eRButtonDown, MouseEvent::eMotion, MouseEvent::eWheel, KeyEvent::eDown, KeyEvent::eUp, WindowEvent::eShown, WindowEvent::eMoved,
+          WindowEvent::eResized, WindowEvent::eEnter>
+        lEvents;
 
-    std::cout << sizeof(lWindow) << std::endl;
+    /*std::cout << sizeof(lWindow) << std::endl;
     std::cout << sizeof(e) << std::endl;*/
 
-    lApp.Register(lWindow);
+    lApp.Bind(lWindow.GetWindowId(), lEvents);
 
-    lWindow.On<MouseEvent::eLButtonDown>([&lWindow, &lApp](const Sint32 aPosX, const Sint32 aPosY) {
+    lEvents.On<MouseEvent::eLButtonDown>([&lWindow, &lApp](const Sint32 aPosX, const Sint32 aPosY) {
         std::cout << "Left button down: " << aPosX << "," << aPosY << "\n";
         lWindow.RemoveBorder();
         lApp.SetCursor(CursorType::eHand);
@@ -64,13 +58,13 @@ int main(int /*argc*/, char* /*argv*/[])
         // lWindow.ShowMessage(abollo::MessageType::eError, "Title", "Message");
     });
 
-    lWindow.On<MouseEvent::eRButtonDown>([&lWindow, &lApp](const Sint32 aPosX, const Sint32 aPosY) {
+    lEvents.On<MouseEvent::eRButtonDown>([&lWindow, &lApp](const Sint32 aPosX, const Sint32 aPosY) {
         std::cout << "Right button up: " << aPosX << "," << aPosY << "\n";
         lWindow.AddBorder();
         lApp.SetCursor(CursorType::eWaitArrow);
     });
 
-    lWindow.On<MouseEvent::eMotion>([](const Sint32 aPosX, const Sint32 aPosY, const Sint32 aPosRelX, const Sint32 aPosRelY, const Uint32 aMask) {
+    lEvents.On<MouseEvent::eMotion>([](const Sint32 aPosX, const Sint32 aPosY, const Sint32 aPosRelX, const Sint32 aPosRelY, const Uint32 aMask) {
         fmt::print("Mouse moved to ({}, {}) -> ({}, {})\n", aPosX, aPosY, aPosRelX, aPosRelY);
 
         if ((aMask & MouseMask::eLeft) == MouseMask::eLeft)
@@ -89,15 +83,15 @@ int main(int /*argc*/, char* /*argv*/[])
             std::cout << "X2 button is pressing.\n";
     });
 
-    lWindow.On<MouseEvent::eWheel>([](const Sint32 aPosX, const Sint32 aPosY) { fmt::print("Mouse wheel: {}, {}\n", aPosX, aPosY); });
+    lEvents.On<MouseEvent::eWheel>([](const Sint32 aPosX, const Sint32 aPosY) { fmt::print("Mouse wheel: {}, {}\n", aPosX, aPosY); });
 
-    lWindow.On<KeyEvent::eDown>([](const Key aKey, const Uint16 aModifier) { fmt::print("key pressed: {} -> {}\n", aKey, aModifier); });
-    lWindow.On<KeyEvent::eDown>([](const Key aKey, const Uint16 aModifier) { fmt::print("key pressed2: {} -> {}\n", aKey, aModifier); });
-    lWindow.On<KeyEvent::eUp>([](const Key aKey, const Uint16 aModifier) { fmt::print("key released: {} -> {}\n", aKey, aModifier); });
+    lEvents.On<KeyEvent::eDown>([](const Key aKey, const Uint16 aModifier) { fmt::print("key pressed: {} -> {}\n", aKey, aModifier); });
+    lEvents.On<KeyEvent::eDown>([](const Key aKey, const Uint16 aModifier) { fmt::print("key pressed2: {} -> {}\n", aKey, aModifier); });
+    lEvents.On<KeyEvent::eUp>([](const Key aKey, const Uint16 aModifier) { fmt::print("key released: {} -> {}\n", aKey, aModifier); });
 
-    lWindow.On<WindowEvent::eMoved>([&lWindow](const Sint32, const Sint32) { std::cout << "Display index: " << lWindow.GetDisplayIndex() << std::endl; });
-    lWindow.On<WindowEvent::eEnter>([]() { std::cout << "Entered\n"; });
-    lWindow.On<WindowEvent::eResized>([](const Sint32 aWidth, const Sint32 aHeight) { fmt::print("Window resized to {}, {}\n", aWidth, aHeight); });
+    lEvents.On<WindowEvent::eMoved>([&lWindow](const Sint32, const Sint32) { std::cout << "Display index: " << lWindow.GetDisplayIndex() << std::endl; });
+    lEvents.On<WindowEvent::eEnter>([]() { std::cout << "Entered\n"; });
+    lEvents.On<WindowEvent::eResized>([](const Sint32 aWidth, const Sint32 aHeight) { fmt::print("Window resized to {}, {}\n", aWidth, aHeight); });
 
     /*const auto [lWidth, lHeight] = lWindow.GetSize();
     lWidth, lHeight;*/

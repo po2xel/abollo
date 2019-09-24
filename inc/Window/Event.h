@@ -3,8 +3,8 @@
 
 
 
+#include "EventDispatcher.h"
 #include "EventSlot.h"
-#include "Window.h"
 
 
 
@@ -13,16 +13,13 @@ namespace abollo
 
 
 template <auto... Es>
-class EventWindow final : public Event<Es...>, public Window
+class Event final : public EventSlot<Es...>, public EventDispatcher
 {
 private:
-    using EventBase = Event<Es...>;
+    using EventBase = EventSlot<Es...>;
 
 public:
-    using Window::Window;
-    using EventBase::On;
-
-    virtual ~EventWindow() override = default;
+    virtual ~Event() override = default;
 
     virtual void OnWindowEvent(const SDL_WindowEvent& aEvent) const override;
 
@@ -37,7 +34,7 @@ public:
 
 
 template <auto... Es>
-void EventWindow<Es...>::OnWindowEvent(const SDL_WindowEvent& aEvent) const
+void Event<Es...>::OnWindowEvent(const SDL_WindowEvent& aEvent) const
 {
     switch (static_cast<WindowEvent>(aEvent.event))
     {
@@ -109,7 +106,7 @@ void EventWindow<Es...>::OnWindowEvent(const SDL_WindowEvent& aEvent) const
 
 
 template <auto... Es>
-void EventWindow<Es...>::OnMouseButtonDownEvent(const SDL_MouseButtonEvent& aEvent) const
+void Event<Es...>::OnMouseButtonDownEvent(const SDL_MouseButtonEvent& aEvent) const
 {
     switch (static_cast<MouseButton>(aEvent.button))
     {
@@ -137,7 +134,7 @@ void EventWindow<Es...>::OnMouseButtonDownEvent(const SDL_MouseButtonEvent& aEve
 
 
 template <auto... Es>
-void EventWindow<Es...>::OnMouseButtonUpEvent(const SDL_MouseButtonEvent& aEvent) const
+void Event<Es...>::OnMouseButtonUpEvent(const SDL_MouseButtonEvent& aEvent) const
 {
     switch (static_cast<MouseButton>(aEvent.button))
     {
@@ -165,28 +162,28 @@ void EventWindow<Es...>::OnMouseButtonUpEvent(const SDL_MouseButtonEvent& aEvent
 
 
 template <auto... Es>
-void EventWindow<Es...>::OnMouseMotionEvent(const SDL_MouseMotionEvent& aEvent) const
+void Event<Es...>::OnMouseMotionEvent(const SDL_MouseMotionEvent& aEvent) const
 {
     EventBase::template Signal<MouseEvent::eMotion>(aEvent.x, aEvent.y, aEvent.xrel, aEvent.yrel, aEvent.state);
 }
 
 
 template <auto... Es>
-void EventWindow<Es...>::OnMouseWheelEvent(const SDL_MouseWheelEvent& aEvent) const
+void Event<Es...>::OnMouseWheelEvent(const SDL_MouseWheelEvent& aEvent) const
 {
     EventBase::template Signal<MouseEvent::eWheel>(aEvent.x, aEvent.y);
 }
 
 
 template <auto... Es>
-void EventWindow<Es...>::OnKeyDownEvent(const SDL_KeyboardEvent& aEvent) const
+void Event<Es...>::OnKeyDownEvent(const SDL_KeyboardEvent& aEvent) const
 {
     EventBase::template Signal<KeyEvent::eDown>(static_cast<Key>(aEvent.keysym.sym), aEvent.keysym.mod);
 }
 
 
 template <auto... Es>
-void EventWindow<Es...>::OnKeyUpEvent(const SDL_KeyboardEvent& aEvent) const
+void Event<Es...>::OnKeyUpEvent(const SDL_KeyboardEvent& aEvent) const
 {
     EventBase::template Signal<KeyEvent::eUp>(static_cast<Key>(aEvent.keysym.sym), aEvent.keysym.mod);
 }

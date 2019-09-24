@@ -10,15 +10,12 @@
 #include <SDL2/SDL.h>
 
 #include "Utility/Singleton.h"
+#include "Window/EventDispatcher.h"
 
 
 
 namespace abollo
 {
-
-
-
-class Window;
 
 
 
@@ -68,7 +65,7 @@ enum class CursorType : Uint8
 class Application final : private internal::Singleton<Application>
 {
 private:
-    std::unordered_map<Uint32, const Window&> mWindows;
+    std::unordered_map<Uint32, const EventDispatcher&> mEventDispatchers;
     std::unique_ptr<SDL_Cursor, decltype(&SDL_FreeCursor)> mCursor;
 
 public:
@@ -76,7 +73,7 @@ public:
 
     explicit Application(const SubSystem& aFlags) : mCursor(nullptr, &SDL_FreeCursor)
     {
-        if (const auto ret = SDL_Init(static_cast<Uint32>(aFlags)); ret != 0)
+        if (const auto lRet = SDL_Init(static_cast<Uint32>(aFlags)); lRet != 0)
             throw std::runtime_error("Failed to initialize SDL subsystems.");
     }
 
@@ -85,13 +82,8 @@ public:
         SDL_Quit();
     }
 
-    void Register(const Window& aWindow);
+    void Bind(const Uint32 aWindowId, const EventDispatcher& aWindow);
     void Run() const;
-
-    const Window& GetWindow(const Uint32 aWindowId)
-    {
-        return mWindows.at(aWindowId);
-    }
 
     void SetCursor(const CursorType aCursorType)
     {

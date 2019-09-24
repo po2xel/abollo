@@ -175,8 +175,9 @@
     <ClInclude Include="inc\Utility\NonCopyable.h" />
     <ClInclude Include="inc\Utility\Singleton.h" />
     <ClInclude Include="inc\Window\Application.h" />
+    <ClInclude Include="inc\Window\EventDispatcher.h" />
     <ClInclude Include="inc\Window\EventSlot.h" />
-    <ClInclude Include="inc\Window\EventWindow.h" />
+    <ClInclude Include="inc\Window\Event.h" />
     <ClInclude Include="inc\Window\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

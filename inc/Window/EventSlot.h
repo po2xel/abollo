@@ -432,11 +432,11 @@ public:
 
 
 template <auto e, auto... Es>
-class Event : public internal::EventTrait<decltype(e), e>, public Event<Es...>
+class EventSlot : public internal::EventTrait<decltype(e), e>, public EventSlot<Es...>
 {
 private:
     using BaseTrait = internal::EventTrait<decltype(e), e>;
-    using BaseEvent = Event<Es...>;
+    using BaseEvent = EventSlot<Es...>;
 
 public:
     template <auto t, typename Slot>
@@ -476,7 +476,7 @@ public:
 
 
 template <auto e>
-class Event<e> : public internal::EventTrait<decltype(e), e>, public internal::FallbackEvent
+class EventSlot<e> : public internal::EventTrait<decltype(e), e>, public internal::FallbackEvent
 {
 private:
     using BaseTrait = internal::EventTrait<decltype(e), e>;

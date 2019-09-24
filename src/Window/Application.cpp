@@ -1,7 +1,6 @@
 #include "Window/Application.h"
 
 #include "Window/EventSlot.h"
-#include "Window/Window.h"
 
 
 
@@ -10,9 +9,9 @@ namespace abollo
 
 
 
-void Application::Register(const Window& aWindow)
+void Application::Bind(const Uint32 aWindowId, const EventDispatcher& aEventDispatcher)
 {
-    mWindows.emplace(aWindow.GetWindowId(), aWindow);
+    mEventDispatchers.emplace(aWindowId, aEventDispatcher);
 }
 
 
@@ -26,50 +25,50 @@ void Application::Run() const
             {
             case SDL_WINDOWEVENT:
             {
-                const auto& lWindow = mWindows.at(lEvent.window.windowID);
-                lWindow.OnWindowEvent(lEvent.window);
+                const auto& lEventDispatcher = mEventDispatchers.at(lEvent.window.windowID);
+                lEventDispatcher.OnWindowEvent(lEvent.window);
                 break;
             }
 
             case SDL_MOUSEMOTION:
             {
-                const auto& lWindow = mWindows.at(lEvent.motion.windowID);
-                lWindow.OnMouseMotionEvent(lEvent.motion);
+                const auto& lEventDispatcher = mEventDispatchers.at(lEvent.motion.windowID);
+                lEventDispatcher.OnMouseMotionEvent(lEvent.motion);
                 break;
             }
 
             case SDL_MOUSEBUTTONDOWN:
             {
-                const auto& lWindow = mWindows.at(lEvent.button.windowID);
-                lWindow.OnMouseButtonDownEvent(lEvent.button);
+                const auto& lEventDispatcher = mEventDispatchers.at(lEvent.button.windowID);
+                lEventDispatcher.OnMouseButtonDownEvent(lEvent.button);
                 break;
             }
 
             case SDL_MOUSEBUTTONUP:
             {
-                const auto& lWindow = mWindows.at(lEvent.button.windowID);
-                lWindow.OnMouseButtonUpEvent(lEvent.button);
+                const auto& lEventDispatcher = mEventDispatchers.at(lEvent.button.windowID);
+                lEventDispatcher.OnMouseButtonUpEvent(lEvent.button);
                 break;
             }
 
             case SDL_MOUSEWHEEL:
             {
-                const auto& lWindow = mWindows.at(lEvent.wheel.windowID);
-                lWindow.OnMouseWheelEvent(lEvent.wheel);
+                const auto& lEventDispatcher = mEventDispatchers.at(lEvent.wheel.windowID);
+                lEventDispatcher.OnMouseWheelEvent(lEvent.wheel);
                 break;
             }
 
             case SDL_KEYDOWN:
             {
-                const auto& lWindow = mWindows.at(lEvent.key.windowID);
-                lWindow.OnKeyDownEvent(lEvent.key);
+                const auto& lEventDispatcher = mEventDispatchers.at(lEvent.key.windowID);
+                lEventDispatcher.OnKeyDownEvent(lEvent.key);
                 break;
             }
 
             case SDL_KEYUP:
             {
-                const auto& lWindow = mWindows.at(lEvent.key.windowID);
-                lWindow.OnKeyUpEvent(lEvent.key);
+                const auto& lEventDispatcher = mEventDispatchers.at(lEvent.key.windowID);
+                lEventDispatcher.OnKeyUpEvent(lEvent.key);
                 break;
             }
 

@@ -4,7 +4,12 @@
 
 #include <string_view>
 
+
+#define VK_USE_PLATFORM_WIN32_KHR
 #include <vulkan/vulkan.h>
+
+#undef VK_NULL_HANDLE
+#define VK_NULL_HANDLE nullptr
 
 #include "Utility/NonCopyable.h"
 
@@ -17,12 +22,21 @@ namespace abollo
 class VulkanContext final : private internal::NonCopyable
 {
 private:
-    VkInstance mInstance;
+    struct DeviceQueue
+    {
+        VkQueue handle{VK_NULL_HANDLE};
+        uint32_t familyIndex{UINT32_MAX};
+    };
 
-    void CreateInstance(const std::string_view aAppName, const uint32_t aAppVersion, const std::string_view aEngineName, const uint32_t aEngineVersion);
+    VkInstance mInstance{VK_NULL_HANDLE};
+    VkPhysicalDevice mPhysicalDevice{VK_NULL_HANDLE};
+    DeviceQueue mGraphicsQueue;
+    DeviceQueue mPresentQueue;
+    VkDevice mDevice{VK_NULL_HANDLE};
 
 public:
-    VulkanContext(const std::string_view aAppName, const uint32_t aAppVersion, const std::string_view aEngineName, const uint32_t aEngineVersion, const uint32_t aApiVersion);
+    VulkanContext(const std::string_view aAppName, const uint32_t aAppVersion, const std::string_view aEngineName, const uint32_t aEngineVersion);
+    ~VulkanContext();
 };
 
 

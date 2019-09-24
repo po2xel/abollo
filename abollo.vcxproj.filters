@@ -56,9 +56,6 @@
     <ClInclude Include="inc\Window\EventSlot.h">
       <Filter>Header Files\Window</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Window\EventWindow.h">
-      <Filter>Header Files\Window</Filter>
-    </ClInclude>
     <ClInclude Include="inc\Graphics\VulkanContext.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
@@ -67,6 +64,12 @@
     </ClInclude>
     <ClInclude Include="inc\Utility\Singleton.h">
       <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Window\EventDispatcher.h">
+      <Filter>Header Files\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Window\Event.h">
+      <Filter>Header Files\Window</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
