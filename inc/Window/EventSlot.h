@@ -450,6 +450,34 @@ public:
             BaseEvent::template On<t>(std::forward<Slot>(aSlot));
     }
 
+    template <auto t0, auto t1, typename Slot>
+    constexpr void On(Slot&& aSlot)
+    {
+        On<t0>(aSlot);
+        On<t1>(aSlot);
+    }
+
+    template <auto t0, auto t1, auto t2, typename Slot>
+    constexpr void On(Slot&& aSlot)
+    {
+        On<t0>(aSlot);
+        On<t1, t2>(aSlot);
+    }
+
+    template <auto t0, auto t1, auto t2, auto t3, typename Slot>
+    constexpr void On(Slot&& aSlot)
+    {
+        On<t0>(aSlot);
+        On<t1, t2, t3>(aSlot);
+    }
+
+    template <auto t0, auto t1, auto t2, auto t3, auto t4, typename Slot>
+    constexpr void On(Slot&& aSlot)
+    {
+        On<t0>(aSlot);
+        On<t1, t2, t3, t4>(aSlot);
+    }
+
     template <auto t>
     constexpr void Off() const
     {
