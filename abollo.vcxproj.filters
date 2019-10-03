@@ -31,6 +31,9 @@
     <Filter Include="Source Files\Graphics">
       <UniqueIdentifier>{c0913df6-87f0-4991-859c-9e24aa1b4ea8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\vk">
+      <UniqueIdentifier>{0878a9c4-6e7a-4d41-8bf1-fec9c84b8cd8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -44,6 +47,9 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\VulkanContext.cpp">
       <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MarketingCanvas.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -70,6 +76,27 @@
     </ClInclude>
     <ClInclude Include="inc\Window\Event.h">
       <Filter>Header Files\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\vk\Instance.h">
+      <Filter>Header Files\Graphics\vk</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\vk\PhysicalDevice.h">
+      <Filter>Header Files\Graphics\vk</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\vk\Utility.h">
+      <Filter>Header Files\Graphics\vk</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\vk\LogicalDevice.h">
+      <Filter>Header Files\Graphics\vk</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\vk\vk.h">
+      <Filter>Header Files\Graphics\vk</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Graphics\vk\Queue.h">
+      <Filter>Header Files\Graphics\vk</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\MarketingCanvas.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

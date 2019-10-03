@@ -1,14 +1,15 @@
-#ifdef _DEBUG
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#include <cstdlib>
-#endif
+// #ifdef _DEBUG
+// #define _CRTDBG_MAP_ALLOC
+// #include <crtdbg.h>
+// #include <cstdlib>
+// #endif
 
 #include <iostream>
 
 #include <fmt/format.h>
 
 #include "Graphics/VulkanContext.h"
+#include "MarketingCanvas.h"
 #include "Window/Application.h"
 #include "Window/Event.h"
 #include "Window/EventSlot.h"
@@ -21,6 +22,7 @@ using abollo::CursorType;
 using abollo::Event;
 using abollo::Key;
 using abollo::KeyEvent;
+using abollo::MarketingCanvas;
 using abollo::MouseEvent;
 using abollo::MouseMask;
 using abollo::SubSystem;
@@ -36,7 +38,6 @@ int main(int /*argc*/, char* /*argv*/[])
     Window lWindow{"Hello World", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768, SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN};
 
     VulkanContext lVulkanContext{lWindow, "Hello World", 1, "", 0};
-    lVulkanContext;
 
     Event<MouseEvent::eLButtonDown, MouseEvent::eRButtonDown, MouseEvent::eMotion, MouseEvent::eWheel, KeyEvent::eDown, KeyEvent::eUp, WindowEvent::eShown, WindowEvent::eMoved,
           WindowEvent::eResized, WindowEvent::eEnter>
@@ -58,13 +59,13 @@ int main(int /*argc*/, char* /*argv*/[])
         // lWindow.ShowMessage(abollo::MessageType::eError, "Title", "Message");
     });
 
-    lEvents.On<MouseEvent::eRButtonDown>([&lWindow, &lApp](const Sint32 aPosX, const Sint32 aPosY) {
+    lEvents.On<MouseEvent::eLButtonUp>([&lWindow, &lApp](const Sint32 aPosX, const Sint32 aPosY) {
         std::cout << "Right button up: " << aPosX << "," << aPosY << "\n";
         lWindow.AddBorder();
-        lApp.SetCursor(CursorType::eWaitArrow);
+        lApp.SetCursor(CursorType::eArrow);
     });
 
-    lEvents.On<MouseEvent::eMotion>([](const Sint32 aPosX, const Sint32 aPosY, const Sint32 aPosRelX, const Sint32 aPosRelY, const Uint32 aMask) {
+    /*lEvents.On<MouseEvent::eMotion>([](const Sint32 aPosX, const Sint32 aPosY, const Sint32 aPosRelX, const Sint32 aPosRelY, const Uint32 aMask) {
         fmt::print("Mouse moved to ({}, {}) -> ({}, {})\n", aPosX, aPosY, aPosRelX, aPosRelY);
 
         if ((aMask & MouseMask::eLeft) == MouseMask::eLeft)
@@ -90,8 +91,37 @@ int main(int /*argc*/, char* /*argv*/[])
     lEvents.On<KeyEvent::eUp>([](const Key aKey, const Uint16 aModifier) { fmt::print("key released: {} -> {}\n", aKey, aModifier); });
 
     lEvents.On<WindowEvent::eMoved>([&lWindow](const Sint32, const Sint32) { std::cout << "Display index: " << lWindow.GetDisplayIndex() << std::endl; });
-    lEvents.On<WindowEvent::eEnter>([]() { std::cout << "Entered\n"; });
-    lEvents.On<WindowEvent::eResized>([](const Sint32 aWidth, const Sint32 aHeight) { fmt::print("Window resized to {}, {}\n", aWidth, aHeight); });
+    lEvents.On<WindowEvent::eEnter>([]() { std::cout << "Entered\n"; });*/
+
+    MarketingCanvas lMarketingCanvas;
+
+    lEvents.On<WindowEvent::eShown>([&lVulkanContext, &lMarketingCanvas] {
+        lVulkanContext.CreateSwapchain();
+
+        auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
+
+        if (lBackBuffer)
+        {
+            lMarketingCanvas.Paint(lBackBuffer.get());
+            lBackBuffer->flush();
+            lVulkanContext.SwapBuffers();
+        }
+    });
+
+    lEvents.On<WindowEvent::eResized>([&lVulkanContext, &lMarketingCanvas](const Sint32 aWidth, const Sint32 aHeight) {
+        fmt::print("Window resized to {}, {}\n", aWidth, aHeight);
+
+        lVulkanContext.CreateSwapchain();
+
+        auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
+
+        if (lBackBuffer)
+        {
+            lMarketingCanvas.Paint(lBackBuffer.get());
+            lBackBuffer->flush();
+            lVulkanContext.SwapBuffers();
+        }
+    });
 
     /*const auto [lWidth, lHeight] = lWindow.GetSize();
     lWidth, lHeight;*/
