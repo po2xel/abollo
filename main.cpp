@@ -11,7 +11,6 @@
 
 #include "Graphics/VulkanContext.h"
 #include "Market/MarketCanvas.h"
-#include "Market/Model/Index.h"
 #include "Window/Application.h"
 #include "Window/Event.h"
 #include "Window/EventSlot.h"

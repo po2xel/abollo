@@ -8,12 +8,19 @@
 #include <soci/soci.h>
 #include <soci/values.h>
 
-#include <skia/include/core/SkColor.h>
-
 
 
 namespace abollo
 {
+
+
+
+enum class Data
+{
+    ePrice,
+    eVolume,
+    eAmount
+};
 
 
 
@@ -25,14 +32,8 @@ struct Price
     float close;
     float low;
     float high;
-
-    SkColor color;
-
-    Price() = default;
-
-    Price(const float aOpen, const float aClose, const float aLow, const float aHigh, const SkColor aColor) : open(aOpen), close(aClose), low(aLow), high(aHigh), color(aColor)
-    {
-    }
+    float volume;
+    float amount;
 };
 
 
@@ -55,12 +56,12 @@ struct type_conversion<abollo::Price>
     {
         price.date = v.get<date::year_month_day>("date");
 
-        price.open  = static_cast<float>(v.get<double>("open"));
-        price.close = static_cast<float>(v.get<double>("close"));
-        price.low   = static_cast<float>(v.get<double>("low"));
-        price.high  = static_cast<float>(v.get<double>("high"));
-
-        price.color = price.close > price.open ? SK_ColorRED : SK_ColorGREEN;
+        price.open   = static_cast<float>(v.get<double>("open"));
+        price.close  = static_cast<float>(v.get<double>("close"));
+        price.low    = static_cast<float>(v.get<double>("low"));
+        price.high   = static_cast<float>(v.get<double>("high"));
+        price.volume = static_cast<float>(v.get<double>("volume"));
+        price.amount = static_cast<float>(v.get<double>("amount"));
     }
 };
 

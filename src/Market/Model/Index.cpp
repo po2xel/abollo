@@ -38,16 +38,20 @@ void Index::LoadMinMax(const date::year_month_day& aStartDate, const date::year_
     mMinMaxStmt.exchange(use(aStartDate, "start"));
     mMinMaxStmt.exchange(use(aEndDate, "end"));
 
-    double lMin{0}, lMax{0};
-    mMinMaxStmt.exchange(into(lMin));
-    mMinMaxStmt.exchange(into(lMax));
+    double lMinPrice{0}, lMaxPrice{0}, lMinVolume{0}, lMaxVolume{0}, lMinAmount{0}, lMaxAmount{0};
+    mMinMaxStmt.exchange(into(lMinPrice));
+    mMinMaxStmt.exchange(into(lMaxPrice));
+    mMinMaxStmt.exchange(into(lMinVolume));
+    mMinMaxStmt.exchange(into(lMaxVolume));
+    mMinMaxStmt.exchange(into(lMinAmount));
+    mMinMaxStmt.exchange(into(lMaxAmount));
 
     mMinMaxStmt.define_and_bind();
     mMinMaxStmt.execute(true);
     mMinMaxStmt.bind_clean_up();
 
-    mMinMax.first  = static_cast<float>(lMin);
-    mMinMax.second = static_cast<float>(lMax);
+    mMinMax = std::make_tuple(static_cast<float>(lMinPrice), static_cast<float>(lMaxPrice), static_cast<float>(lMinVolume), static_cast<float>(lMaxVolume),
+                              static_cast<float>(lMinAmount), static_cast<float>(lMaxAmount));
 }
 
 

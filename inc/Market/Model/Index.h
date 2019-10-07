@@ -5,10 +5,10 @@
 
 #include <functional>
 #include <string_view>
-
-#include <boost/circular_buffer.hpp>
+#include <tuple>
 
 #include <date/date.h>
+#include <boost/circular_buffer.hpp>
 
 #include "Market/Model/Price.h"
 #include "Market/Model/TradeDate.h"
@@ -45,12 +45,12 @@ namespace abollo
 class Index final
 {
 private:
-    constexpr static std::string_view INDEX_DAILY_SQL = "SELECT date, open, close, low, high "
+    constexpr static std::string_view INDEX_DAILY_SQL = "SELECT date, open, close, low, high, volume, amount "
                                                         "FROM index_daily_market "
                                                         "WHERE date >= :start AND date <= :end "
-                                                        "ORDER BY date ASC";
+                                                        "ORDER BY date DESC";
 
-    constexpr static std::string_view MIN_MAX_SQL = "SELECT min(low), max(high) "
+    constexpr static std::string_view MIN_MAX_SQL = "SELECT min(low), max(high), min(volume), max(volume), min(amount), max(amount) "
                                                     "FROM index_daily_market "
                                                     "WHERE date >= :start AND date <= :end ";
 
@@ -59,7 +59,7 @@ private:
     soci::statement mMinMaxStmt;
 
     boost::circular_buffer_space_optimized<Price> mPrices{{1024, 20}};
-    std::pair<float, float> mMinMax;
+    std::tuple<float, float, float, float, float, float> mMinMax;
 
     void LoadPrices(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate);
     void LoadMinMax(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate);
@@ -75,9 +75,15 @@ public:
         LoadMinMax(aStartDate, aEndDate);
     }
 
-    [[nodiscard]] auto& MinMax() const
+    template <Data d>
+    [[nodiscard]] std::pair<float, float> MinMax() const
     {
-        return mMinMax;
+        if constexpr (Data::eVolume == d)
+            return {std::get<2>(mMinMax), std::get<3>(mMinMax)};
+        else if constexpr (Data::eAmount == d)
+            return {std::get<4>(mMinMax), std::get<5>(mMinMax)};
+        else
+            return {std::get<0>(mMinMax), std::get<1>(mMinMax)};
     }
 
     auto& operator[](const std::size_t aIndex) const
@@ -100,7 +106,6 @@ public:
         return mPrices.end();
     }
 };
-
 
 
 }    // namespace abollo

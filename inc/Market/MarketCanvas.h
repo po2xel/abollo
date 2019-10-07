@@ -9,9 +9,9 @@
 #include <skia/include/core/SkPaint.h>
 #include <skia/include/core/SkSurface.h>
 
-#include "Market/Painter.h"
-#include "Market/Model/TradeDate.h"
 #include "Market/Model/Index.h"
+#include "Market/Model/TradeDate.h"
+#include "Market/Painter.h"
 
 
 
@@ -23,9 +23,6 @@ namespace abollo
 class MarketCanvas final
 {
 private:
-    SkPaint mAxisPaint;
-    SkFont mAxisLabelFont;
-
     SkMatrix mTransMatrix;
 
     SkScalar mMousePosX{0.f};
@@ -35,8 +32,6 @@ private:
     Index mIndexData;
 
     std::unique_ptr<Painter> mpMarketPainter;
-
-    void DrawAxes(SkCanvas& aCanvas, const Index& aPrices) const;
 
 public:
     MarketCanvas();
@@ -49,6 +44,7 @@ public:
 
     void MoveTo(const SkScalar aPosX, const SkScalar aPosY)
     {
+        // mTransMatrix.postTranslate(aPosX, 0.f);     // Movement along Y axis is disabled.
         mTransMatrix.postTranslate(aPosX, aPosY);
     }
 
