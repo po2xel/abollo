@@ -82,12 +82,12 @@ private:
                                                        "FROM trade_calendar "
                                                        "WHERE exchange = :exchange AND is_open = 1 "
                                                        "ORDER BY date DESC "
-                                                       "LIMIT 30";
+                                                       "LIMIT 20";
 
     soci::session mSession{soci::sqlite3, R"(data/ashare.db)"};
     soci::statement mTradeDateStmt;
 
-    std::vector<date::year_month_day> mTradeDates{30};
+    std::vector<date::year_month_day> mTradeDates{20};
 
 public:
     TradeDate() : mTradeDateStmt(mSession.prepare << TRADE_DATE_SQL)

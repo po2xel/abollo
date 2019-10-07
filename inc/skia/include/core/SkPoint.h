@@ -171,6 +171,12 @@ struct SK_API SkPoint {
         return {x, y};
     }
 
+    constexpr SkPoint() : fX{0}, fY{0}
+    {}
+
+   constexpr SkPoint(SkScalar x, SkScalar y) : fX{x}, fY{y}
+    {}
+
     /** Returns x-axis value of SkPoint or vector.
 
         @return  fX

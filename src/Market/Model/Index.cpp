@@ -50,8 +50,8 @@ void Index::LoadMinMax(const date::year_month_day& aStartDate, const date::year_
     mMinMaxStmt.execute(true);
     mMinMaxStmt.bind_clean_up();
 
-    mMinMax = std::make_tuple(static_cast<float>(lMinPrice), static_cast<float>(lMaxPrice), static_cast<float>(lMinVolume), static_cast<float>(lMaxVolume),
-                              static_cast<float>(lMinAmount), static_cast<float>(lMaxAmount));
+    mMinMax = std::make_tuple(static_cast<float>(lMinPrice), static_cast<float>(lMaxPrice), static_cast<float>(lMinVolume / 1000000.f), static_cast<float>(lMaxVolume / 1000000.f),
+                              static_cast<float>(lMinAmount / 1000000.f), static_cast<float>(lMaxAmount / 1000000.f));
 }
 
 

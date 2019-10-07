@@ -60,8 +60,8 @@ struct type_conversion<abollo::Price>
         price.close  = static_cast<float>(v.get<double>("close"));
         price.low    = static_cast<float>(v.get<double>("low"));
         price.high   = static_cast<float>(v.get<double>("high"));
-        price.volume = static_cast<float>(v.get<double>("volume"));
-        price.amount = static_cast<float>(v.get<double>("amount"));
+        price.volume = static_cast<float>(v.get<double>("volume") / 1000000.f);
+        price.amount = static_cast<float>(v.get<double>("amount") / 1000000.f);
     }
 };
 

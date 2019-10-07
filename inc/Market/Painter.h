@@ -48,7 +48,7 @@ public:
     void DrawVolume(SkCanvas& aCanvas, const Index& aPrices) const;
     void DrawDateAxis(SkCanvas& aCanvas, const Index& aPrices) const;
     void DrawPriceAxis(SkCanvas& aCanvas, const Index& aPrices) const;
-    // void DrawVolumeAxis(SkCanvas& aCanvas, const Index& aPrices) const;
+    void DrawVolumeAxis(SkCanvas& aCanvas, const Index& aPrices) const;
 };
 
 

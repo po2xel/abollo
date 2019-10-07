@@ -61,9 +61,7 @@ int main(int /*argc*/, char* /*argv*/[])
         }
     });
 
-    lEvents.On<WindowEvent::eResized>([&lVulkanContext, &lMarketCanvas](const Sint32 aWidth, const Sint32 aHeight) {
-        fmt::print("Window resized to {}, {}\n", aWidth, aHeight);
-
+    lEvents.On<WindowEvent::eResized>([&lVulkanContext, &lMarketCanvas](const Sint32 /*aWidth*/, const Sint32 /*aHeight*/) {
         lVulkanContext.CreateSwapchain();
 
         auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
@@ -104,6 +102,14 @@ int main(int /*argc*/, char* /*argv*/[])
             lMarketCanvas.Paint(lBackBuffer.get());
             lBackBuffer->flush();
             lVulkanContext.SwapBuffers();
+        }
+    });
+
+    lEvents.On<KeyEvent::eDown>([&lVulkanContext, &lMarketCanvas](const Key aKey, const Uint16 /*aModifier*/) {
+        if (aKey == Key::ePrintScreen)
+        {
+            const auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
+            lMarketCanvas.Capture(lBackBuffer.get());
         }
     });
 

@@ -1,12 +1,15 @@
 #include "Market/MarketCanvas.h"
 
+#include <fstream>
+
+#include <date/date.h>
 #include <fmt/format.h>
 #include <skia/include/core/SkCanvas.h>
 #include <skia/include/core/SkPath.h>
 #include <skia/include/core/SkTextBlob.h>
 
-#include "Market/Model/Index.h"
 #include <include/effects/SkDashPathEffect.h>
+#include "Market/Model/Index.h"
 
 
 namespace abollo
@@ -16,10 +19,23 @@ namespace abollo
 
 MarketCanvas::MarketCanvas()
 {
-    mTradeDate.Load();
-    mIndexData.Load(mTradeDate.front(), mTradeDate.back());
+    using date::operator"" _y;
+
+    constexpr auto lStartDate{2018_y / 1 / 1}, lEndDate{2020_y / 1 / 1};
+
+    mIndexData.Load(lStartDate, lEndDate);
 
     mpMarketPainter = std::make_unique<Painter>();
+}
+
+
+void MarketCanvas::Capture(SkSurface* apSurface) const
+{
+    const auto lImageSnapshot = apSurface->makeImageSnapshot();
+    const auto lImageData = lImageSnapshot->encodeToData();
+
+    std::ofstream fout("snapshot-test.png", std::ios::binary);
+    fout.write(static_cast<const char*>(lImageData->data()), lImageData->size());
 }
 
 
@@ -98,7 +114,7 @@ void MarketCanvas::Paint(SkSurface* apSurface) const
 
         lpCanvas->concat(mat);
 
-        // mpMarketPainter->DrawVolumeAxis(*lpCanvas, mIndexData);
+        mpMarketPainter->DrawVolumeAxis(*lpCanvas, mIndexData);
         mpMarketPainter->DrawVolume(*lpCanvas, mIndexData);
     }
 }

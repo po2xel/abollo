@@ -105,21 +105,39 @@ void Painter::DrawVolume(SkCanvas& aCanvas, const Index& aPrices) const
 {
     SkAutoCanvasRestore lGuard(&aCanvas, true);
 
-    // auto& lTransMatrix = aCanvas.getTotalMatrix();
-    // const auto lScaleX = lTransMatrix.getScaleX();
-    // const auto lTransX = lTransMatrix.getTranslateX();
-    // const auto lScaleY = lTransMatrix.getScaleY();
-    // const auto lTransY = lTransMatrix.getTranslateY();
+    auto& lTransMatrix = aCanvas.getTotalMatrix();
+    const auto lScaleX = lTransMatrix.getScaleX();
+    const auto lTransX = lTransMatrix.getTranslateX();
+    const auto lScaleY = lTransMatrix.getScaleY();
+    const auto lTransY = lTransMatrix.getTranslateY();
 
-    // aCanvas.resetMatrix();
+    aCanvas.resetMatrix();
 
     auto lPosX{20.f};
     SkPath lVolumePath;
 
-    lVolumePath.moveTo(lPosX, aPrices[0].volume);
+    auto lCoordX = lPosX * lScaleX + lTransX;
+    auto lCoordY = aPrices[0].volume * lScaleY + lTransY;
+
+    // lVolumePath.moveTo(lPosX, aPrices[0].volume);
+    lVolumePath.moveTo(lCoordX, lCoordY);
+
+    SkPaint paint;
+    paint.setAntiAlias(true);
+    paint.setColor(0x80349a45);
+    paint.setStyle(SkPaint::kStroke_Style);
+    paint.setStrokeWidth(5);
+    paint.setStrokeCap(SkPaint::kRound_Cap);
 
     for (std::size_t lIndex = 1, lSize = aPrices.size(); lIndex < lSize; ++lIndex)
-        lVolumePath.lineTo(--lPosX, aPrices[lIndex].volume);
+    {
+        lCoordX = --lPosX * lScaleX + lTransX;
+        lCoordY = aPrices[lIndex].volume * lScaleY + lTransY;
+
+        // lVolumePath.lineTo(--lPosX, aPrices[lIndex].volume);
+        lVolumePath.lineTo(lCoordX, lCoordY);
+        aCanvas.drawPoint(lCoordX, lCoordY, paint);
+    }
 
     aCanvas.drawPath(lVolumePath, mVolumePaint);
 }
@@ -176,7 +194,7 @@ void Painter::DrawPriceAxis(SkCanvas& aCanvas, const Index& aPrices) const
 
     auto lPrePosY = std::numeric_limits<float>::max();
 
-    for (auto lIndex = 0; lIndex < DEFAULT_PRICE_LABEL_COUNT; ++lIndex)
+    for (auto lIndex = 0; lIndex <= DEFAULT_PRICE_LABEL_COUNT; ++lIndex)
     {
         const auto lPrice  = lLow + lIndex * lPriceDelta;
         const auto lCoordY = lPrice * lScaleY + lTransY;
@@ -193,39 +211,39 @@ void Painter::DrawPriceAxis(SkCanvas& aCanvas, const Index& aPrices) const
 }
 
 
-// void Painter::DrawVolumeAxis(SkCanvas& aCanvas, const Index& aPrices) const
-//{
-//    SkAutoCanvasRestore lGuard(&aCanvas, true);
-//
-//    auto& lTransMatrix = aCanvas.getTotalMatrix();
-//    const auto lScaleY = lTransMatrix.getScaleY();
-//    const auto lTransY = lTransMatrix.getTranslateY();
-//
-//    // const auto lCanvasClipBounds = aCanvas.getDeviceClipBounds();
-//    const auto lCoordX = 0.f; // static_cast<SkScalar>(lCanvasClipBounds.width()) - mPriceLabelWidth;
-//
-//    aCanvas.resetMatrix();
-//
-//    const auto [lLow, lHigh] = aPrices.MinMax<Data::eVolume>();
-//    const auto lVolumeDelta   = (lHigh - lLow) / DEFAULT_PRICE_LABEL_COUNT;
-//
-//    auto lPrePosY = std::numeric_limits<float>::max();
-//
-//    for (auto lIndex = 0; lIndex < DEFAULT_PRICE_LABEL_COUNT; ++lIndex)
-//    {
-//        const auto lVolume  = lLow + lIndex * lVolumeDelta;
-//        const auto lCoordY = lVolume * lScaleY + lTransY;
-//
-//        if (lPrePosY - lCoordY < mPriceLabelSpace)
-//            continue;
-//
-//        auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, lVolume);
-//
-//        aCanvas.drawString(lPriceLabel.data(), lCoordX, lCoordY, mAxisLabelFont, mAxisPaint);
-//
-//        lPrePosY = lCoordY;
-//    }
-//}
+ void Painter::DrawVolumeAxis(SkCanvas& aCanvas, const Index& aPrices) const
+{
+    SkAutoCanvasRestore lGuard(&aCanvas, true);
+
+    auto& lTransMatrix = aCanvas.getTotalMatrix();
+    const auto lScaleY = lTransMatrix.getScaleY();
+    const auto lTransY = lTransMatrix.getTranslateY();
+
+    // const auto lCanvasClipBounds = aCanvas.getDeviceClipBounds();
+    const auto lCoordX = 0.f; // static_cast<SkScalar>(lCanvasClipBounds.width()) - mPriceLabelWidth;
+
+    aCanvas.resetMatrix();
+
+    const auto [lLow, lHigh] = aPrices.MinMax<Data::eVolume>();
+    const auto lVolumeDelta   = (lHigh - lLow) / DEFAULT_PRICE_LABEL_COUNT;
+
+    auto lPrePosY = std::numeric_limits<float>::max();
+
+    for (auto lIndex = 0; lIndex <= DEFAULT_PRICE_LABEL_COUNT; ++lIndex)
+    {
+        const auto lVolume  = lLow + lIndex * lVolumeDelta;
+        const auto lCoordY = lVolume * lScaleY + lTransY;
+
+        if (lPrePosY - lCoordY < mPriceLabelSpace)
+            continue;
+
+        auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, lVolume);
+
+        aCanvas.drawString(lPriceLabel.data(), lCoordX, lCoordY, mAxisLabelFont, mAxisPaint);
+
+        lPrePosY = lCoordY;
+    }
+}
 
 
 
