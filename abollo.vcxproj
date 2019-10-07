@@ -108,18 +108,18 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;NOMINMAX;SK_VULKAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;NOMINMAX;SK_VULKAN;SOCI_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)inc;$(VULKAN_SDK)\include;$(BOOST_LIB);$(SolutionDir)inc\skia;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)inc;$(VULKAN_SDK)\include;$(BOOST_LIB);$(SolutionDir)inc\skia;$(SolutionDir)inc\sqlite3;$(SolutionDir)inc\soci;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib\Debug;$(VULKAN_SDK)\Lib;$(SKIA_SDK)\out\Shared;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib;SDL2.lib;SDL2main.lib;skia.dll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\Debug;$(VULKAN_SDK)\Lib;$(SKIA_SDK)\out\Shared;C:\Users\xXx\Desktop\soci-master\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;SDL2.lib;SDL2main.lib;skia.dll.lib;soci_core_4_0.lib;soci_sqlite3_4_0.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -150,10 +150,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;NOMINMAX;SK_VULKAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;NOMINMAX;SK_VULKAN;SOCI_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)inc;$(VULKAN_SDK)\include;$(BOOST_LIB);$(SolutionDir)inc\skia;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)inc;$(VULKAN_SDK)\include;$(BOOST_LIB);$(SolutionDir)inc\skia;$(SolutionDir)inc\sqlite3;$(SolutionDir)inc\soci;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
@@ -162,14 +162,16 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\Release;$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib;SDL2.lib;SDL2main.lib;skia.dll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;SDL2.lib;SDL2main.lib;skia.dll.lib;soci_core_4_0.lib;soci_sqlite3_4_0.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\fmt\format.cc" />
     <ClCompile Include="src\Graphics\VulkanContext.cpp" />
-    <ClCompile Include="src\MarketingPainter.cpp" />
+    <ClCompile Include="src\Market\MarketCanvas.cpp" />
+    <ClCompile Include="src\Market\Model\Index.cpp" />
+    <ClCompile Include="src\Market\Painter.cpp" />
     <ClCompile Include="src\Window\Application.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -180,7 +182,11 @@
     <ClInclude Include="inc\Graphics\vk\Utility.h" />
     <ClInclude Include="inc\Graphics\vk\vk.h" />
     <ClInclude Include="inc\Graphics\VulkanContext.h" />
-    <ClInclude Include="inc\MarketingPainter.h" />
+    <ClInclude Include="inc\Market\MarketCanvas.h" />
+    <ClInclude Include="inc\Market\Model\Index.h" />
+    <ClInclude Include="inc\Market\Model\Price.h" />
+    <ClInclude Include="inc\Market\Model\TradeDate.h" />
+    <ClInclude Include="inc\Market\Painter.h" />
     <ClInclude Include="inc\Utility\NonCopyable.h" />
     <ClInclude Include="inc\Utility\Singleton.h" />
     <ClInclude Include="inc\Window\Application.h" />

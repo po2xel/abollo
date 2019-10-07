@@ -34,6 +34,18 @@
     <Filter Include="Header Files\Graphics\vk">
       <UniqueIdentifier>{0878a9c4-6e7a-4d41-8bf1-fec9c84b8cd8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Market">
+      <UniqueIdentifier>{4ea57b46-a351-49b2-b9b1-af772d6d147e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Market">
+      <UniqueIdentifier>{8651ec05-3074-4412-8ed6-a2dc9b31b5e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Market\Model">
+      <UniqueIdentifier>{b0ad5744-2a80-447c-a8e9-d5bf5e6fce7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Market\Model">
+      <UniqueIdentifier>{3ee1f67f-1836-4899-a746-4ad25e86ca5a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -48,8 +60,14 @@
     <ClCompile Include="src\Graphics\VulkanContext.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\MarketingPainter.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Market\MarketCanvas.cpp">
+      <Filter>Source Files\Market</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Market\Model\Index.cpp">
+      <Filter>Source Files\Market\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Market\Painter.cpp">
+      <Filter>Source Files\Market</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -95,8 +113,20 @@
     <ClInclude Include="inc\Graphics\vk\Queue.h">
       <Filter>Header Files\Graphics\vk</Filter>
     </ClInclude>
-    <ClInclude Include="inc\MarketingPainter.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="inc\Market\MarketCanvas.h">
+      <Filter>Header Files\Market</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Market\Painter.h">
+      <Filter>Header Files\Market</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Market\Model\TradeDate.h">
+      <Filter>Header Files\Market\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Market\Model\Index.h">
+      <Filter>Header Files\Market\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Market\Model\Price.h">
+      <Filter>Header Files\Market\Model</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

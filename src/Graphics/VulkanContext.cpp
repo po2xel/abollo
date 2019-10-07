@@ -109,10 +109,14 @@ VulkanContext::VulkanContext(const Window& aWindow, const std::string_view aAppN
         return vkGetInstanceProcAddr(aInstance, apProcName);
     };
 
+#ifdef NDEBUG
+    constexpr std::array<const char*, 2> lInstanceExtensions{VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_WIN32_SURFACE_EXTENSION_NAME};
+#else
     constexpr std::array<const char*, 3> lInstanceExtensions{VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_WIN32_SURFACE_EXTENSION_NAME, VK_EXT_DEBUG_REPORT_EXTENSION_NAME};
+#endif
 
     GrVkExtensions lExtensions;
-    lExtensions.init(lGetProc, mInstance, mPhysicalDevice, 3, lInstanceExtensions.data(), 1, lDeviceExtensions.data());
+    lExtensions.init(lGetProc, mInstance, mPhysicalDevice, static_cast<uint32_t>(lInstanceExtensions.size()) , lInstanceExtensions.data(), 1, lDeviceExtensions.data());
 
     const GrVkBackendContext lBackendContext{.fInstance           = mInstance,
                                              .fPhysicalDevice     = mPhysicalDevice,

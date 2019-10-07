@@ -40,7 +40,12 @@ public:
                                                  .engineVersion      = aEngineVersion,
                                                  .apiVersion         = DEFAULT_VULKAN_VERSION};
 
+#ifdef NDEBUG
+        constexpr std::array<const char*, 0> lInstanceLayers{};
+#else
         constexpr std::array<const char*, 1> lInstanceLayers{DEFAULT_VALIDATION_NAME};
+#endif
+
         constexpr std::array<const char*, 3> lInstanceExtensions{VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_WIN32_SURFACE_EXTENSION_NAME, VK_EXT_DEBUG_REPORT_EXTENSION_NAME};
 
         constexpr VkInstanceCreateInfo lInstanceCreateInfo{.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
