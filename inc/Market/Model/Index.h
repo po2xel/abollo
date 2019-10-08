@@ -55,8 +55,19 @@ private:
                                                     "WHERE date >= :start AND date <= :end ";
 
     soci::session mSession{soci::sqlite3, R"(data/ashare.db)"};
+
     soci::statement mIndexDailyStmt;
     soci::statement mMinMaxStmt;
+
+public:
+    const std::string_view mCode;
+    boost::circular_buffer_space_optimized<date::year_month_day> mDate{{1024, 20}};
+    boost::circular_buffer_space_optimized<float> mOpen{{1024, 20}};
+    boost::circular_buffer_space_optimized<float> mClose{{1024, 20}};
+    boost::circular_buffer_space_optimized<float> mLow{{1024, 20}};
+    boost::circular_buffer_space_optimized<float> mHigh{{1024, 20}};
+    boost::circular_buffer_space_optimized<float> mVoume{{1024, 20}};
+    boost::circular_buffer_space_optimized<float> mAmount{{1024, 20}};
 
     boost::circular_buffer_space_optimized<Price> mPrices{{1024, 20}};
     std::tuple<float, float, float, float, float, float> mMinMax;
@@ -65,7 +76,7 @@ private:
     void LoadMinMax(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate);
 
 public:
-    Index() : mIndexDailyStmt(mSession.prepare << INDEX_DAILY_SQL), mMinMaxStmt(mSession.prepare << MIN_MAX_SQL)
+    Index(const std::string_view aCdode) : mIndexDailyStmt(mSession.prepare << INDEX_DAILY_SQL), mMinMaxStmt(mSession.prepare << MIN_MAX_SQL), mCode{aCdode}
     {
     }
 

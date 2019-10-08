@@ -17,7 +17,7 @@ namespace abollo
 
 
 
-MarketCanvas::MarketCanvas()
+MarketCanvas::MarketCanvas() : mIndexData("000001.SH")
 {
     using date::operator"" _y;
 

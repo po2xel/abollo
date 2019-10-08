@@ -4,6 +4,34 @@
 
 
 
+namespace soci
+{
+
+
+
+template <>
+struct type_conversion<abollo::Index>
+{
+    using base_type = values;
+
+    static void from_base(const base_type& v, indicator /*ind*/, abollo::Index& price)
+    {
+        price.mDate.push_back(v.get<date::year_month_day>("date"));
+
+        price.mOpen.push_back(static_cast<float>(v.get<double>("open")));
+        price.mClose.push_back(static_cast<float>(v.get<double>("close")));
+        price.mLow.push_back(static_cast<float>(v.get<double>("low")));
+        price.mHigh.push_back(static_cast<float>(v.get<double>("high")));
+        price.mVoume.push_back(static_cast<float>(v.get<double>("volume") / 1000000.f));
+        price.mAmount.push_back(static_cast<float>(v.get<double>("amount") / 1000000.f));
+    }
+};
+
+
+
+}    // namespace soci
+
+
 namespace abollo
 {
 
@@ -18,13 +46,16 @@ void Index::LoadPrices(const date::year_month_day& aStartDate, const date::year_
 
     mIndexDailyStmt.exchange(use(aStartDate, "start"));
     mIndexDailyStmt.exchange(use(aEndDate, "end"));
-    mIndexDailyStmt.exchange(into(lPrice));
+    // mIndexDailyStmt.exchange(into(lPrice));
+    mIndexDailyStmt.exchange(into(*this));
 
     mIndexDailyStmt.define_and_bind();
     mIndexDailyStmt.execute();
 
-    mPrices.clear();
-    std::copy(soci::rowset_iterator<Price>{mIndexDailyStmt, lPrice}, soci::rowset_iterator<Price>{}, std::back_inserter(mPrices));
+    while (mIndexDailyStmt.fetch());
+
+    // mPrices.clear();
+    // std::copy(soci::rowset_iterator<Price>{mIndexDailyStmt, lPrice}, soci::rowset_iterator<Price>{}, std::back_inserter(mPrices));
 
     mIndexDailyStmt.bind_clean_up();
 }
