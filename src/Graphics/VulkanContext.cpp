@@ -26,7 +26,7 @@ VulkanContext::VulkanContext(const Window& aWindow, const std::string_view aAppN
 
     // Create vulkan surface
     if (SDL_TRUE != SDL_Vulkan_CreateSurface(aWindow.GetHandle(), mInstance, &mSurface))
-        throw std::runtime_error("Failed to create vulkan surface");
+        throw std::runtime_error("Failed to create vulkan surface.");
 
     // Pick a physical device
     const auto& lPhysicalDevices = mInstance.GetPhysicalDevices();

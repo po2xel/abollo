@@ -17,6 +17,7 @@
 #include "Window/Window.h"
 
 
+
 using abollo::Application;
 using abollo::CursorType;
 using abollo::Event;

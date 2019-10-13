@@ -17,7 +17,6 @@ namespace soci
 {
 
 
-
 template <>
 struct type_conversion<date::year_month_day>
 {
@@ -34,7 +33,7 @@ struct type_conversion<date::year_month_day>
     static void to_base(const date::year_month_day& in, base_type& out, indicator& ind)
     {
         out.tm_mday = static_cast<int>(static_cast<unsigned>(in.day()));
-        out.tm_mon = static_cast<int>(static_cast<unsigned>(in.month()) - 1);
+        out.tm_mon  = static_cast<int>(static_cast<unsigned>(in.month()) - 1);
         out.tm_year = static_cast<int>(static_cast<int>(in.year()) - 1900);
 
         ind = i_ok;
@@ -42,26 +41,26 @@ struct type_conversion<date::year_month_day>
 };
 
 
-template <>
-struct type_conversion<std::string_view>
-{
-    using base_type = std::string;
-
-    static void from_base(const base_type& in, const indicator ind, std::string_view& out)
-    {
-        if (ind == i_null)
-            throw soci_error("Null value not allowed for this type");
-
-        out = in;
-    }
-
-    static void to_base(const std::string_view& in, base_type& out, indicator& ind)
-    {
-        out = in;
-
-        ind = i_ok;
-    }
-};
+// template <>
+// struct type_conversion<std::string_view>
+// {
+//     using base_type = std::string;
+//
+//     static void from_base(const base_type& in, const indicator ind, std::string_view& out)
+//     {
+//         if (ind == i_null)
+//             throw soci_error("Null value not allowed for this type");
+//
+//         out = in;
+//     }
+//
+//     static void to_base(const std::string_view& in, base_type& out, indicator& ind)
+//     {
+//         out = in;
+//
+//         ind = i_ok;
+//     }
+// };
 
 
 
@@ -76,13 +75,13 @@ namespace abollo
 class TradeDate final
 {
 private:
-    constexpr static std::string_view EX_SSE = "SSE";
+    const std::string EX_SSE = "SSE";
 
-    constexpr static std::string_view TRADE_DATE_SQL = "SELECT date "
-                                                       "FROM trade_calendar "
-                                                       "WHERE exchange = :exchange AND is_open = 1 "
-                                                       "ORDER BY date DESC "
-                                                       "LIMIT 20";
+    const std::string TRADE_DATE_SQL = "SELECT date "
+                                       "FROM trade_calendar "
+                                       "WHERE exchange = :exchange AND is_open = 1 "
+                                       "ORDER BY date DESC "
+                                       "LIMIT 20";
 
     soci::session mSession{soci::sqlite3, R"(data/ashare.db)"};
     soci::statement mTradeDateStmt;

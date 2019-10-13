@@ -4,14 +4,14 @@
 
 
 #include <functional>
-#include <string_view>
+#include <memory>
+#include <string>
 #include <tuple>
+#include <utility>
 
 #include <date/date.h>
-#include <boost/circular_buffer.hpp>
 
 #include "Market/Model/Price.h"
-#include "Market/Model/TradeDate.h"
 
 
 
@@ -42,81 +42,29 @@ namespace abollo
 
 
 
+class IndexImpl;
+
+
 class Index final
 {
 private:
-    constexpr static std::string_view INDEX_DAILY_SQL = "SELECT date, open, close, low, high, volume, amount "
-                                                        "FROM index_daily_market "
-                                                        "WHERE date >= :start AND date <= :end "
-                                                        "ORDER BY date DESC";
-
-    constexpr static std::string_view MIN_MAX_SQL = "SELECT min(low), max(high), min(volume), max(volume), min(amount), max(amount) "
-                                                    "FROM index_daily_market "
-                                                    "WHERE date >= :start AND date <= :end ";
-
-    soci::session mSession{soci::sqlite3, R"(data/ashare.db)"};
-
-    soci::statement mIndexDailyStmt;
-    soci::statement mMinMaxStmt;
+    std::unique_ptr<IndexImpl> mImpl;
 
 public:
-    const std::string_view mCode;
-    boost::circular_buffer_space_optimized<date::year_month_day> mDate{{1024, 20}};
-    boost::circular_buffer_space_optimized<float> mOpen{{1024, 20}};
-    boost::circular_buffer_space_optimized<float> mClose{{1024, 20}};
-    boost::circular_buffer_space_optimized<float> mLow{{1024, 20}};
-    boost::circular_buffer_space_optimized<float> mHigh{{1024, 20}};
-    boost::circular_buffer_space_optimized<float> mVoume{{1024, 20}};
-    boost::circular_buffer_space_optimized<float> mAmount{{1024, 20}};
+    Index();
+    ~Index();
 
-    boost::circular_buffer_space_optimized<Price> mPrices{{1024, 20}};
-    std::tuple<float, float, float, float, float, float> mMinMax;
+    void LoadIndex(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate) const;
 
-    void LoadPrices(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate);
-    void LoadMinMax(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate);
+    [[nodiscard]] std::pair<DatePriceZipIterator, DatePriceZipIterator> Saxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
+                                                                              const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const;
 
-public:
-    Index(const std::string_view aCdode) : mIndexDailyStmt(mSession.prepare << INDEX_DAILY_SQL), mMinMaxStmt(mSession.prepare << MIN_MAX_SQL), mCode{aCdode}
-    {
-    }
+    [[nodiscard]] std::size_t Size() const;
 
-    void Load(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate)
-    {
-        LoadPrices(aStartDate, aEndDate);
-        LoadMinMax(aStartDate, aEndDate);
-    }
-
-    template <Data d>
-    [[nodiscard]] std::pair<float, float> MinMax() const
-    {
-        if constexpr (Data::eVolume == d)
-            return {std::get<2>(mMinMax), std::get<3>(mMinMax)};
-        else if constexpr (Data::eAmount == d)
-            return {std::get<4>(mMinMax), std::get<5>(mMinMax)};
-        else
-            return {std::get<0>(mMinMax), std::get<1>(mMinMax)};
-    }
-
-    auto& operator[](const std::size_t aIndex) const
-    {
-        return mPrices.at(aIndex);
-    }
-
-    [[nodiscard]] std::size_t size() const
-    {
-        return mPrices.size();
-    }
-
-    [[nodiscard]] auto begin() const
-    {
-        return mPrices.begin();
-    }
-
-    [[nodiscard]] auto end() const
-    {
-        return mPrices.end();
-    }
+    [[nodiscard]] std::tuple<float, float, float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize) const;
+    [[nodiscard]] std::tuple<float, float, float, float> MinMax(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate) const;
 };
+
 
 
 }    // namespace abollo

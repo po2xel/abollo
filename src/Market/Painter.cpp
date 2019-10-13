@@ -1,16 +1,21 @@
 #include "Market/Painter.h"
 
 #include <limits>
-#include <tuple>
 
 #include <fmt/format.h>
 #include <skia/include/core/SkFontMgr.h>
 #include <skia/include/effects/SkDashPathEffect.h>
 
+#include "Market/Model/Index.h"
+
 
 
 namespace abollo
 {
+
+
+constexpr auto DEFAULT_UPPER_COLOR = SkColorSetARGB(0xFF, 0xFF, 0x4a, 0x4a);
+constexpr auto DEFAULT_LOWER_COLOR = SkColorSetARGB(0xFF, 0x3c, 0xc8, 0x66);
 
 
 Painter::Painter()
@@ -50,199 +55,151 @@ Painter::Painter()
 }
 
 
-void Painter::DrawCandle(SkCanvas& aCanvas, const Index& aPrices)
+SkScalar Painter::DrawDateAxis(SkCanvas& aCanvas, const SkScalar aCoordX, const SkScalar aCoordY, const date::year_month_day& aDate) const
 {
-    auto lPosX = 20.f;
+    const auto lCoordX    = aCoordX - mDateLabelWidth / 2.f;
+    const auto lDateLabel = fmt::format(DEFAULT_DATE_FORMAT_STR, static_cast<unsigned>(aDate.month()), static_cast<unsigned>(aDate.day()));
 
-    SkPath lUpStickPath;
-    SkPath lDownStickPath;
-    SkColor lCandleColor;
+    aCanvas.drawString(lDateLabel.data(), lCoordX, aCoordY, mAxisLabelFont, mAxisPaint);
 
-    for (const auto& lPrice : aPrices)
-    {
-        // Draw candle stick
-        const auto lLow  = static_cast<SkScalar>(lPrice.low);
-        const auto lHigh = static_cast<SkScalar>(lPrice.high);
-
-        if (lPrice.open < lPrice.close)
-        {
-            lCandleColor = SK_ColorRED;
-
-            lUpStickPath.moveTo(lPosX, lLow);
-            lUpStickPath.lineTo(lPosX, lHigh);
-        }
-        else
-        {
-            lCandleColor = SK_ColorGREEN;
-
-            lDownStickPath.moveTo(lPosX, lLow);
-            lDownStickPath.lineTo(lPosX, lHigh);
-        }
-
-        // Draw candle body
-        const auto lDeltaX = 1.f / 2;
-
-        const SkPoint lCandlePts[]{{lPosX - lDeltaX, static_cast<SkScalar>(lPrice.open)}, {lPosX + lDeltaX, static_cast<SkScalar>(lPrice.close)}};
-        SkRect lCandleRect{};
-        lCandleRect.set(lCandlePts[0], lCandlePts[1]);
-
-        mCandlePaint.setColor(lCandleColor);
-
-        aCanvas.drawRect(lCandleRect, mCandlePaint);
-
-        --lPosX;
-    }
-
-    mCandlestickPaint.setColor(SK_ColorRED);
-    aCanvas.drawPath(lUpStickPath, mCandlestickPaint);
-
-    mCandlestickPaint.setColor(SK_ColorGREEN);
-    aCanvas.drawPath(lDownStickPath, mCandlestickPaint);
+    return lCoordX;
 }
 
 
-void Painter::DrawVolume(SkCanvas& aCanvas, const Index& aPrices) const
+void Painter::DrawPriceAxis(SkCanvas& aCanvas, const SkScalar aCoordX, const SkScalar aLow, const SkScalar aHigh, const uint32_t aCount, const SkScalar aScaleY,
+                            const SkScalar aTransY) const
 {
-    SkAutoCanvasRestore lGuard(&aCanvas, true);
+    const auto lPriceDelta = (aHigh - aLow) / aCount;
+    const auto lCoordX     = aCoordX - mPriceLabelWidth;
 
-    auto& lTransMatrix = aCanvas.getTotalMatrix();
-    const auto lScaleX = lTransMatrix.getScaleX();
-    const auto lTransX = lTransMatrix.getTranslateX();
-    const auto lScaleY = lTransMatrix.getScaleY();
-    const auto lTransY = lTransMatrix.getTranslateY();
+    // auto lPrePosY = std::numeric_limits<float>::max();
 
-    aCanvas.resetMatrix();
+    auto lPrice = aLow;
 
-    auto lPosX{20.f};
-    SkPath lVolumePath;
-
-    auto lCoordX = lPosX * lScaleX + lTransX;
-    auto lCoordY = aPrices[0].volume * lScaleY + lTransY;
-
-    // lVolumePath.moveTo(lPosX, aPrices[0].volume);
-    lVolumePath.moveTo(lCoordX, lCoordY);
-
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    paint.setColor(0x80349a45);
-    paint.setStyle(SkPaint::kStroke_Style);
-    paint.setStrokeWidth(5);
-    paint.setStrokeCap(SkPaint::kRound_Cap);
-
-    for (std::size_t lIndex = 1, lSize = aPrices.size(); lIndex < lSize; ++lIndex)
+    for (uint32_t lIndex = 0; lIndex <= aCount; ++lIndex, lPrice += lPriceDelta)
     {
-        lCoordX = --lPosX * lScaleX + lTransX;
-        lCoordY = aPrices[lIndex].volume * lScaleY + lTransY;
+        // const auto lPrice  = aLow + lIndex * lPriceDelta;
+        const auto lCoordY = lPrice * aScaleY + aTransY;
 
-        // lVolumePath.lineTo(--lPosX, aPrices[lIndex].volume);
-        lVolumePath.lineTo(lCoordX, lCoordY);
-        aCanvas.drawPoint(lCoordX, lCoordY, paint);
-    }
-
-    aCanvas.drawPath(lVolumePath, mVolumePaint);
-}
-
-
-void Painter::DrawDateAxis(SkCanvas& aCanvas, const Index& aPrices) const
-{
-    SkAutoCanvasRestore lGuard(&aCanvas, true);
-
-    auto& lTransMatrix = aCanvas.getTotalMatrix();
-    const auto lScaleX = lTransMatrix.getScaleX();
-    const auto lTransX = lTransMatrix.getTranslateX();
-
-    const auto lCanvasClipBounds = aCanvas.getDeviceClipBounds();
-    const auto lCoordY           = static_cast<SkScalar>(lCanvasClipBounds.height());
-
-    aCanvas.resetMatrix();
-
-    auto lPosX     = 20;
-    auto lPrevPosX = std::numeric_limits<float>::max();
-
-    for (const auto& lPrice : aPrices)
-    {
-        const auto lCoordX = (lPosX--) * lScaleX + lTransX - mDateLabelWidth / 2.f;
-
-        if (lPrevPosX - lCoordX < mDateLabelSpace)
-            continue;
-
-        const auto& lDate     = lPrice.date;
-        const auto lDateLabel = fmt::format(DEFAULT_DATE_FORMAT_STR, static_cast<unsigned>(lDate.month()), static_cast<unsigned>(lDate.day()));
-
-        aCanvas.drawString(lDateLabel.data(), lCoordX, lCoordY, mAxisLabelFont, mAxisPaint);
-
-        lPrevPosX = lCoordX;
-    }
-}
-
-
-void Painter::DrawPriceAxis(SkCanvas& aCanvas, const Index& aPrices) const
-{
-    SkAutoCanvasRestore lGuard(&aCanvas, true);
-
-    auto& lTransMatrix = aCanvas.getTotalMatrix();
-    const auto lScaleY = lTransMatrix.getScaleY();
-    const auto lTransY = lTransMatrix.getTranslateY();
-
-    const auto lCanvasClipBounds = aCanvas.getDeviceClipBounds();
-    const auto lCoordX           = static_cast<SkScalar>(lCanvasClipBounds.width()) - mPriceLabelWidth;
-
-    aCanvas.resetMatrix();
-
-    const auto [lLow, lHigh] = aPrices.MinMax<Data::ePrice>();
-    const auto lPriceDelta   = (lHigh - lLow) / DEFAULT_PRICE_LABEL_COUNT;
-
-    auto lPrePosY = std::numeric_limits<float>::max();
-
-    for (auto lIndex = 0; lIndex <= DEFAULT_PRICE_LABEL_COUNT; ++lIndex)
-    {
-        const auto lPrice  = lLow + lIndex * lPriceDelta;
-        const auto lCoordY = lPrice * lScaleY + lTransY;
-
-        if (lPrePosY - lCoordY < mPriceLabelSpace)
-            continue;
+        // if (lPrePosY - lCoordY < mPriceLabelSpace)
+        // continue;
 
         auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, lPrice);
 
         aCanvas.drawString(lPriceLabel.data(), lCoordX, lCoordY, mAxisLabelFont, mAxisPaint);
 
-        lPrePosY = lCoordY;
+        // lPrePosY = lCoordY;
     }
 }
 
 
- void Painter::DrawVolumeAxis(SkCanvas& aCanvas, const Index& aPrices) const
+void Painter::DrawVolumeAxis(SkCanvas& aCanvas, const SkScalar aCoordX, const SkScalar aMin, const SkScalar aMax, const uint32_t aCount, const SkScalar aScaleY,
+                             const SkScalar aTransY) const
 {
-    SkAutoCanvasRestore lGuard(&aCanvas, true);
+    const auto lVolumeDelta = (aMax - aMin) / aCount;
 
-    auto& lTransMatrix = aCanvas.getTotalMatrix();
-    const auto lScaleY = lTransMatrix.getScaleY();
-    const auto lTransY = lTransMatrix.getTranslateY();
+    // auto lPrePosY = std::numeric_limits<float>::max();
 
-    // const auto lCanvasClipBounds = aCanvas.getDeviceClipBounds();
-    const auto lCoordX = 0.f; // static_cast<SkScalar>(lCanvasClipBounds.width()) - mPriceLabelWidth;
+    auto lVolume = aMin;
 
-    aCanvas.resetMatrix();
-
-    const auto [lLow, lHigh] = aPrices.MinMax<Data::eVolume>();
-    const auto lVolumeDelta   = (lHigh - lLow) / DEFAULT_PRICE_LABEL_COUNT;
-
-    auto lPrePosY = std::numeric_limits<float>::max();
-
-    for (auto lIndex = 0; lIndex <= DEFAULT_PRICE_LABEL_COUNT; ++lIndex)
+    for (uint32_t lIndex = 0; lIndex <= aCount; ++lIndex, lVolume += lVolumeDelta)
     {
-        const auto lVolume  = lLow + lIndex * lVolumeDelta;
-        const auto lCoordY = lVolume * lScaleY + lTransY;
+        // const auto lVolume = aMin + lIndex * lVolumeDelta;
+        const auto lCoordY = lVolume * aScaleY + aTransY;
 
-        if (lPrePosY - lCoordY < mPriceLabelSpace)
-            continue;
+        // if (lPrePosY - lCoordY < mPriceLabelSpace)
+        // continue;
 
         auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, lVolume);
 
-        aCanvas.drawString(lPriceLabel.data(), lCoordX, lCoordY, mAxisLabelFont, mAxisPaint);
+        aCanvas.drawString(lPriceLabel.data(), aCoordX, lCoordY, mAxisLabelFont, mAxisPaint);
 
-        lPrePosY = lCoordY;
+        // lPrePosY = lCoordY;
     }
+}
+
+
+void Painter::DrawCandle(SkCanvas& aCanvas, const std::pair<DatePriceZipIterator, DatePriceZipIterator>& lData, const SkScalar aCandleWidth)
+{
+    auto lPrevCoordX = std::numeric_limits<float>::max();
+
+    const auto lCanvasClipBounds = aCanvas.getDeviceClipBounds();
+    const auto lDateCoordY       = static_cast<SkScalar>(lCanvasClipBounds.height());
+
+    const auto lHalfWidth = aCandleWidth / 2.f;
+
+    SkPath lUpperShadowPath;
+    SkPath lLowerShadowPath;
+
+    SkColor lCandleColor;
+
+    auto lBegin = lData.first;
+
+    SkPath lVolumePath;
+
+    {
+        const auto& lTransPrice = thrust::get<1>(*lBegin);
+        const auto& lPrice      = *(reinterpret_cast<const PriceWithIndex*>(&lTransPrice));
+        const auto lCoordX      = lPrice.index;
+
+        lVolumePath.moveTo(lCoordX, lPrice.volume);
+    }
+
+    for (const auto lEnd = lData.second; lBegin != lEnd; ++lBegin)
+    {
+        const auto& lDate       = thrust::get<0>(*lBegin);
+        const auto& lTransPrice = thrust::get<1>(*lBegin);
+        const auto& lPrice      = *(reinterpret_cast<const PriceWithIndex*>(&lTransPrice));
+        const auto lCoordX      = lPrice.index;
+
+        // Draw volume curve
+        lVolumePath.lineTo(lPrice.index, lPrice.volume);
+
+        // Draw date label
+        if (lPrevCoordX - lCoordX >= mDateLabelSpace)
+            lPrevCoordX = DrawDateAxis(aCanvas, lCoordX, lDateCoordY, lDate);
+
+        // Draw candle stick
+        {
+            // Draw candle shadow
+            const auto lLow  = lPrice.low;
+            const auto lHigh = lPrice.high;
+
+            // The transformed price is in the window coordinate system and the Y axis points down in the window coordinate system,
+            // so the comparison is inverted.
+            if (lPrice.open > lPrice.close)
+            {
+                lCandleColor = DEFAULT_UPPER_COLOR;
+
+                lUpperShadowPath.moveTo(lCoordX, lLow);
+                lUpperShadowPath.lineTo(lCoordX, lHigh);
+            }
+            else
+            {
+                lCandleColor = DEFAULT_LOWER_COLOR;
+
+                lLowerShadowPath.moveTo(lCoordX, lLow);
+                lLowerShadowPath.lineTo(lCoordX, lHigh);
+            }
+
+            // Draw candle body
+            const SkPoint lCandlePts[]{{lCoordX - lHalfWidth, lPrice.open}, {lCoordX + lHalfWidth, lPrice.close}};
+            SkRect lCandleRect{};
+            lCandleRect.set(lCandlePts[0], lCandlePts[1]);
+
+            mCandlePaint.setColor(lCandleColor);
+
+            aCanvas.drawRect(lCandleRect, mCandlePaint);
+        }
+    }
+
+    mCandlestickPaint.setColor(DEFAULT_UPPER_COLOR);
+    aCanvas.drawPath(lUpperShadowPath, mCandlestickPaint);
+
+    mCandlestickPaint.setColor(DEFAULT_LOWER_COLOR);
+    aCanvas.drawPath(lLowerShadowPath, mCandlestickPaint);
+
+    aCanvas.drawPath(lVolumePath, mVolumePaint);
 }
 
 

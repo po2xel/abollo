@@ -1,6 +1,8 @@
 #include "Market/MarketCanvas.h"
 
 #include <fstream>
+#include <tuple>
+#include <utility>
 
 #include <date/date.h>
 #include <fmt/format.h>
@@ -17,13 +19,13 @@ namespace abollo
 
 
 
-MarketCanvas::MarketCanvas() : mIndexData("000001.SH")
+MarketCanvas::MarketCanvas()
 {
     using date::operator"" _y;
 
-    constexpr auto lStartDate{2018_y / 1 / 1}, lEndDate{2020_y / 1 / 1};
+    constexpr auto lStartDate{2016_y / 1 / 1}, lEndDate{2020_y / 1 / 1};
 
-    mIndexData.Load(lStartDate, lEndDate);
+    mIndexData.LoadIndex(lStartDate, lEndDate);
 
     mpMarketPainter = std::make_unique<Painter>();
 }
@@ -32,20 +34,44 @@ MarketCanvas::MarketCanvas() : mIndexData("000001.SH")
 void MarketCanvas::Capture(SkSurface* apSurface) const
 {
     const auto lImageSnapshot = apSurface->makeImageSnapshot();
-    const auto lImageData = lImageSnapshot->encodeToData();
+    const auto lImageData     = lImageSnapshot->encodeToData();
 
     std::ofstream fout("snapshot-test.png", std::ios::binary);
     fout.write(static_cast<const char*>(lImageData->data()), lImageData->size());
 }
 
 
+std::tuple<float, float, float, float> PriceTrans(SkCanvas& aCanvas, const SkMatrix& aTransMatrix)
+{
+    SkAutoCanvasRestore lGuard(&aCanvas, true);
+
+    aCanvas.concat(aTransMatrix);
+
+    const auto& lTransMatrix = aCanvas.getTotalMatrix();
+
+    return {lTransMatrix.getScaleX(), lTransMatrix.getTranslateX(), lTransMatrix.getScaleY(), lTransMatrix.getTranslateY()};
+}
+
+
+std::pair<float, float> VolumeTrans(SkCanvas& aCanvas, const SkMatrix& aTransMatrix)
+{
+    SkAutoCanvasRestore lGuard(&aCanvas, true);
+
+    aCanvas.concat(aTransMatrix);
+
+    const auto& lTransMatrix = aCanvas.getTotalMatrix();
+
+    return {lTransMatrix.getScaleY(), lTransMatrix.getTranslateY()};
+}
+
+
 void MarketCanvas::Paint(SkSurface* apSurface) const
 {
-    auto lpCanvas = apSurface->getCanvas();
+    auto& lCanvas = *(apSurface->getCanvas());
 
-    lpCanvas->clear(SK_ColorDKGRAY);
+    lCanvas.clear(SK_ColorDKGRAY);
 
-    SkAutoCanvasRestore lGuard(lpCanvas, true);
+    SkAutoCanvasRestore lGuard(&lCanvas, true);
 
     // auto p = lpCanvas->getLocalClipBounds();
     // auto p2 = lpCanvas->getDeviceClipBounds();
@@ -54,7 +80,7 @@ void MarketCanvas::Paint(SkSurface* apSurface) const
     // p  = lpCanvas->getLocalClipBounds();
     // p2 = lpCanvas->getDeviceClipBounds();
 
-    lpCanvas->concat(mTransMatrix);
+    lCanvas.concat(mTransMatrix);
 
     // p  = lpCanvas->getLocalClipBounds();
     // p2 = lpCanvas->getDeviceClipBounds();
@@ -69,20 +95,45 @@ void MarketCanvas::Paint(SkSurface* apSurface) const
     lpCanvas->clear(SK_ColorWHITE);
     lpCanvas->drawLine(0, 0, 1024, 768, paint);*/
 
-    const auto lCanvasClipBounds = lpCanvas->getDeviceClipBounds();
+    const auto lCanvasClipBounds = lCanvas.getDeviceClipBounds();
 
-    const auto width   = lCanvasClipBounds.width();     // canvas width
-    const auto height  = lCanvasClipBounds.height();    // canvas height
-    const auto lRangeX = 20.f;                          // range in x axis is: [-Inf., rangeX]
+    const auto width   = static_cast<SkScalar>(lCanvasClipBounds.width());     // canvas width
+    const auto height  = static_cast<SkScalar>(lCanvasClipBounds.height());    // canvas height
+    const auto lRangeX = 20.f;                                                 // range in x axis is: [-Inf., rangeX]
+
+    const auto& lTransMat   = lCanvas.getTotalMatrix();
+    const auto lTransX1     = lTransMat.getTranslateX();
+    const auto lScaleX1     = lTransMat.getScaleX();
+    const auto lTotalTranX  = (lScaleX1 - 1.f) * width + lTransX1;
+    const auto lCandleWidth = lScaleX1 * width / lRangeX;
+
+    const auto lStartIndex = lTotalTranX > 0.f ? static_cast<uint32_t>(lTotalTranX / lCandleWidth + 0.5f) : 0u;
+
+    if (lStartIndex < mIndexData.Size())
+        mStartIndex = lStartIndex;
+
+    const auto lSize = static_cast<uint32_t>(std::ceil(width / lCandleWidth + 1.f));
+
+    if (lSize <= mIndexData.Size())
+        mSize = lSize;
+
+    // std::cout << "Candle StartIndex: " << mStartIndex << std::endl;
+    // std::cout << "Candle Size: " << mSize << std::endl;
 
     {
-        SkAutoCanvasRestore lGuard2(lpCanvas, true);
+        SkAutoCanvasRestore lGuard2(&lCanvas, true);
 
-        auto [low, high] = mIndexData.MinMax<Data::ePrice>();    // range in y axis is: [low boundary, high boundary]
+        auto [lLow, lHigh, lMin, lMax] = mIndexData.MinMax(mStartIndex, mSize);    // range in y axis is: [low boundary, high boundary]
 
         /** Calculate coordinate system transformation matrix:
-         * 1. calculate y coordinate in the top-left origin system:  invert y axis:
+         * 1. calculate y coordinate in the top-left origin system:
+         *   a. invert y axis and move y origin to the bottom:
          *          | 1   0   0     |
+         *    A =   | 0   -1 height |
+         *          | 0   0   1     |
+         *
+         *   b. invert x axis and move x origin to the left:
+         *          | -1   0 width  |
          *    A =   | 0   -1 height |
          *          | 0   0   1     |
          *
@@ -97,25 +148,22 @@ void MarketCanvas::Paint(SkSurface* apSurface) const
          * 3. final transformation matrix:
          *    C = A * B
          */
-        const auto& mat = SkMatrix::MakeAll(width / lRangeX, 0.f, 0.f, 0.f, height / (low - high), low * height / (high - low) + height, 0.f, 0.f, 1.f);
+        const auto& lPriceMat = SkMatrix::MakeAll(-width / lRangeX, 0.f, width, 0.f, height / (lLow - lHigh), lLow * height / (lHigh - lLow) + height, 0.f, 0.f, 1.f);
+        const auto [lScaleX, lTransX, lScaleY, lTransY] = PriceTrans(lCanvas, lPriceMat);
 
-        lpCanvas->concat(mat);
+        const auto& lVolMat           = SkMatrix::MakeAll(width / lRangeX, 0.f, 0.f, 0.f, height / (lMin - lMax), lMin * height / (lMax - lMin) + height, 0.f, 0.f, 1.f);
+        const auto [lScaleZ, lTransZ] = VolumeTrans(lCanvas, lVolMat);
 
-        mpMarketPainter->DrawCandle(*lpCanvas, mIndexData);
-        mpMarketPainter->DrawDateAxis(*lpCanvas, mIndexData);
-        mpMarketPainter->DrawPriceAxis(*lpCanvas, mIndexData);
-    }
+        const auto& lTransPrices = mIndexData.Saxpy(mStartIndex, mSize, lScaleX, lTransX, lScaleY, lTransY, lScaleZ, lTransZ);
 
-    {
-        SkAutoCanvasRestore lGuard2(lpCanvas, true);
+        lCanvas.resetMatrix();
 
-        auto [low, high] = mIndexData.MinMax<Data::eVolume>();
-        const auto& mat  = SkMatrix::MakeAll(width / lRangeX, 0.f, 0.f, 0.f, height / (low - high), low * height / (high - low) + height, 0.f, 0.f, 1.f);
+        constexpr auto lYDelta = 60u;
+        const auto lCount      = static_cast<uint32_t>(std::ceil(height / lYDelta));
 
-        lpCanvas->concat(mat);
-
-        mpMarketPainter->DrawVolumeAxis(*lpCanvas, mIndexData);
-        mpMarketPainter->DrawVolume(*lpCanvas, mIndexData);
+        mpMarketPainter->DrawCandle(lCanvas, lTransPrices, lCandleWidth);
+        mpMarketPainter->DrawPriceAxis(lCanvas, width, lLow, lHigh, lCount, lScaleY, lTransY);
+        mpMarketPainter->DrawVolumeAxis(lCanvas, 0.f, lMin, lMax, lCount, lScaleZ, lTransZ);
     }
 }
 

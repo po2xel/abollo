@@ -54,6 +54,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.1.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -108,19 +109,29 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;NOMINMAX;SK_VULKAN;SOCI_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;NOMINMAX;SK_VULKAN;SOCI_ABI_VERSION="4_0";SOCI_LIB_PREFIX="soci_";SOCI_LIB_SUFFIX=".dll";SOCI_DEBUG_POSTFIX="";_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)inc;$(VULKAN_SDK)\include;$(BOOST_LIB);$(SolutionDir)inc\skia;$(SolutionDir)inc\sqlite3;$(SolutionDir)inc\soci;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)inc;$(SolutionDir)inc\soci\private;$(VULKAN_SDK)\include;$(BOOST_LIB);$(CUDA_PATH)\include;$(SolutionDir)inc\skia;$(SolutionDir)inc\sqlite3;$(SolutionDir)inc\soci;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DisableSpecificWarnings>4201;4324;4515;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib\Debug;$(VULKAN_SDK)\Lib;$(SKIA_SDK)\out\Shared;C:\Users\xXx\Desktop\soci-master\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib;SDL2.lib;SDL2main.lib;skia.dll.lib;soci_core_4_0.lib;soci_sqlite3_4_0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CUDA_PATH)\lib;$(SolutionDir)lib\Debug;$(VULKAN_SDK)\Lib;$(SKIA_SDK)\out\Shared;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;SDL2.lib;SDL2main.lib;skia.dll.lib;sqlite3.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <CudaCompile>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+      <CudaRuntime>Shared</CudaRuntime>
+      <AdditionalCompilerOptions>/wd4819 /wd4324 /wd4201 /wd5051 /wd4515</AdditionalCompilerOptions>
+      <CodeGeneration>compute_61,sm_61</CodeGeneration>
+      <AdditionalOptions>--expt-extended-lambda %(AdditionalOptions)</AdditionalOptions>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -150,29 +161,72 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;NOMINMAX;SK_VULKAN;SOCI_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;NOMINMAX;SK_VULKAN;SOCI_ABI_VERSION="4_0";SOCI_LIB_PREFIX="soci_";SOCI_LIB_SUFFIX=".dll";_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)inc;$(VULKAN_SDK)\include;$(BOOST_LIB);$(SolutionDir)inc\skia;$(SolutionDir)inc\sqlite3;$(SolutionDir)inc\soci;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)inc;$(SolutionDir)inc\soci\private;$(VULKAN_SDK)\include;$(BOOST_LIB);$(CUDA_PATH)\include;$(SolutionDir)inc\skia;$(SolutionDir)inc\sqlite3;$(SolutionDir)inc\soci;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
+      <DisableSpecificWarnings>4201;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <AdditionalOptions>/experimental:external /external:I "$(CUDA_PATH)\include" /external:W3 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib\Release;$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib;SDL2.lib;SDL2main.lib;skia.dll.lib;soci_core_4_0.lib;soci_sqlite3_4_0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CUDA_PATH)\lib;$(SolutionDir)lib\Release;$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cudart.lib;vulkan-1.lib;SDL2.lib;SDL2main.lib;skia.dll.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <CudaCompile>
+      <AdditionalOptions>--expt-extended-lambda %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalCompilerOptions>/wd4819 /wd4324 /wd4201 /wd5051 /wd4515</AdditionalCompilerOptions>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\fmt\format.cc" />
     <ClCompile Include="src\Graphics\VulkanContext.cpp" />
     <ClCompile Include="src\Market\MarketCanvas.cpp" />
-    <ClCompile Include="src\Market\Model\Index.cpp" />
-    <ClCompile Include="src\Market\Painter.cpp" />
+    <CudaCompile Include="src\Market\Model\Index.cpp" />
+    <ClCompile Include="src\Market\Painter.cpp">
+      <AdditionalCompilerOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/wd4819 /wd4324 /wd4201 /wd5051 /wd4515</AdditionalCompilerOptions>
+    </ClCompile>
+    <ClCompile Include="src\soci\backends\sqlite3\blob.cpp" />
+    <ClCompile Include="src\soci\backends\sqlite3\error.cpp" />
+    <ClCompile Include="src\soci\backends\sqlite3\factory.cpp" />
+    <ClCompile Include="src\soci\backends\sqlite3\row-id.cpp" />
+    <ClCompile Include="src\soci\backends\sqlite3\session.cpp" />
+    <ClCompile Include="src\soci\backends\sqlite3\standard-into-type.cpp" />
+    <ClCompile Include="src\soci\backends\sqlite3\standard-use-type.cpp" />
+    <ClCompile Include="src\soci\backends\sqlite3\statement.cpp">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="src\soci\backends\sqlite3\vector-into-type.cpp" />
+    <ClCompile Include="src\soci\backends\sqlite3\vector-use-type.cpp" />
+    <ClCompile Include="src\soci\core\backend-loader.cpp" />
+    <ClCompile Include="src\soci\core\blob.cpp" />
+    <ClCompile Include="src\soci\core\common.cpp" />
+    <ClCompile Include="src\soci\core\connection-parameters.cpp" />
+    <ClCompile Include="src\soci\core\connection-pool.cpp" />
+    <ClCompile Include="src\soci\core\error.cpp" />
+    <ClCompile Include="src\soci\core\into-type.cpp" />
+    <ClCompile Include="src\soci\core\logger.cpp" />
+    <ClCompile Include="src\soci\core\once-temp-type.cpp" />
+    <ClCompile Include="src\soci\core\prepare-temp-type.cpp" />
+    <ClCompile Include="src\soci\core\procedure.cpp" />
+    <ClCompile Include="src\soci\core\ref-counted-prepare-info.cpp" />
+    <ClCompile Include="src\soci\core\ref-counted-statement.cpp" />
+    <ClCompile Include="src\soci\core\row.cpp" />
+    <ClCompile Include="src\soci\core\rowid.cpp" />
+    <ClCompile Include="src\soci\core\session.cpp" />
+    <ClCompile Include="src\soci\core\soci-simple.cpp" />
+    <ClCompile Include="src\soci\core\statement.cpp" />
+    <ClCompile Include="src\soci\core\transaction.cpp" />
+    <ClCompile Include="src\soci\core\use-type.cpp" />
+    <ClCompile Include="src\soci\core\values.cpp" />
     <ClCompile Include="src\Window\Application.cpp" />
+    <CudaCompile Include="src\Market\Model\IndexImpl.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\Graphics\vk\Instance.h" />
@@ -184,6 +238,7 @@
     <ClInclude Include="inc\Graphics\VulkanContext.h" />
     <ClInclude Include="inc\Market\MarketCanvas.h" />
     <ClInclude Include="inc\Market\Model\Index.h" />
+    <ClInclude Include="inc\Market\Model\IndexImpl.h" />
     <ClInclude Include="inc\Market\Model\Price.h" />
     <ClInclude Include="inc\Market\Model\TradeDate.h" />
     <ClInclude Include="inc\Market\Painter.h" />
@@ -194,8 +249,10 @@
     <ClInclude Include="inc\Window\EventSlot.h" />
     <ClInclude Include="inc\Window\Event.h" />
     <ClInclude Include="inc\Window\Window.h" />
+    <ClInclude Include="src\soci\backends\sqlite3\common.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.1.targets" />
   </ImportGroup>
 </Project>

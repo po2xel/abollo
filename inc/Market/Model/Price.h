@@ -4,9 +4,13 @@
 
 
 #include <date/date.h>
+#include <array>
 
 #include <soci/soci.h>
 #include <soci/values.h>
+#include <thrust/tuple.h>
+#include <thrust/host_vector.h>
+#include <boost/circular_buffer.hpp>
 
 
 
@@ -14,12 +18,29 @@ namespace abollo
 {
 
 
+using IntFloat6 = thrust::tuple<int, float, float, float, float, float, float>;
+using Float7    = thrust::tuple<float, float, float, float, float, float, float>;
 
-enum class Data
+using DateIterator         = boost::circular_buffer<date::year_month_day>::const_iterator;
+using PriceIterator        = thrust::host_vector<Float7>::const_iterator;
+using DatePriceIterator    = thrust::tuple<DateIterator, PriceIterator>;
+using DatePriceZipIterator = thrust::zip_iterator<DatePriceIterator>;
+
+
+
+enum class DataType
 {
-    ePrice,
-    eVolume,
-    eAmount
+    eIndex = 0,
+
+    eOpen  = 0x01,
+    eClose = 0x02,
+    eLow   = 0x04,
+    eHigh  = 0x08,
+
+    eVolume = 0x10,
+    eAmount = 0x11,
+
+    ePrice = eOpen | eClose | eLow | eHigh
 };
 
 
@@ -28,12 +49,37 @@ struct Price
 {
     date::year_month_day date;
 
-    float open;
-    float close;
-    float low;
-    float high;
-    float volume;
-    float amount;
+    union {
+        std::array<float, 6> data;
+
+        struct
+        {
+            float open;
+            float close;
+            float low;
+            float high;
+            float volume;
+            float amount;
+        };
+    };
+};
+
+
+
+union PriceWithIndex {
+    Float7 tuples{};
+
+    struct
+    {
+        float index;
+
+        float open;
+        float close;
+        float low;
+        float high;
+        float volume;
+        float amount;
+    };
 };
 
 

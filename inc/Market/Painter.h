@@ -2,11 +2,16 @@
 #define __ABOLLO_MARKET_PAINTER_H__
 
 
-#include <skia/include/core/SkCanvas.h>
-#include <skia/include/core/SkPaint.h>
-#include <skia/include/core/SkFont.h>
 
-#include "Market/Model/Index.h"
+#include <string_view>
+#include <utility>
+
+#include <date/date.h>
+#include <skia/include/core/SkCanvas.h>
+#include <skia/include/core/SkFont.h>
+#include <skia/include/core/SkPaint.h>
+
+#include "Market/Model/Price.h"
 
 
 
@@ -15,13 +20,17 @@ namespace abollo
 
 
 
+union PriceWithIndex;
+class Index;
+
+
 class Painter final
 {
 private:
     constexpr static std::string_view DEFAULT_DATE_FORMAT     = "00/00";    // The default date format is MM/DD
     constexpr static std::string_view DEFAULT_DATE_FORMAT_STR = "{:02}/{:02}";
 
-    constexpr static std::string_view DEFAULT_PRICE_FORMAT = "{00000.00}";
+    constexpr static std::string_view DEFAULT_PRICE_FORMAT     = "{00000.00}";
     constexpr static std::string_view DEFAULT_PRICE_FORMAT_STR = "{:>8.2f}";
 
     constexpr static int DEFAULT_PRICE_LABEL_COUNT = 10;
@@ -40,15 +49,18 @@ private:
     SkScalar mPriceLabelHeight;
     SkScalar mPriceLabelSpace;
 
+    SkScalar DrawDateAxis(SkCanvas& aCanvas, const SkScalar aCoordX, const SkScalar aCoordY, const date::year_month_day& aDate) const;
+
 public:
     Painter();
     virtual ~Painter() = default;
 
-    void DrawCandle(SkCanvas& aCanvas, const Index& aPrices);
-    void DrawVolume(SkCanvas& aCanvas, const Index& aPrices) const;
-    void DrawDateAxis(SkCanvas& aCanvas, const Index& aPrices) const;
-    void DrawPriceAxis(SkCanvas& aCanvas, const Index& aPrices) const;
-    void DrawVolumeAxis(SkCanvas& aCanvas, const Index& aPrices) const;
+    void DrawCandle(SkCanvas& aCanvas, const std::pair<DatePriceZipIterator, DatePriceZipIterator>& lData, const SkScalar aCandleWidth);
+
+    void DrawPriceAxis(SkCanvas& aCanvas, const SkScalar aCoordX, const SkScalar aLow, const SkScalar aHigh, const uint32_t aCount, const SkScalar aScaleY,
+                       const SkScalar aTransY) const;
+    void DrawVolumeAxis(SkCanvas& aCanvas, const SkScalar aCoordX, const SkScalar aMin, const SkScalar aMax, const uint32_t aCount, const SkScalar aScaleY,
+                        const SkScalar aTransY) const;
 };
 
 

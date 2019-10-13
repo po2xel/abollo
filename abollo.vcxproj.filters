@@ -46,11 +46,20 @@
     <Filter Include="Source Files\Market\Model">
       <UniqueIdentifier>{3ee1f67f-1836-4899-a746-4ad25e86ca5a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\soci">
+      <UniqueIdentifier>{818f8b05-0d1d-44bb-9a99-b365429df075}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\soci\core">
+      <UniqueIdentifier>{2802e948-de31-46b9-87a3-ef1ef4ce98f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\soci\backends">
+      <UniqueIdentifier>{3242993e-8b0d-40e8-994b-833e080c1195}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\soci\backends\sqlite3">
+      <UniqueIdentifier>{cc3197cc-252f-4b88-b812-a7dab3420dd9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\fmt\format.cc">
       <Filter>Source Files\fmt</Filter>
     </ClCompile>
@@ -63,8 +72,101 @@
     <ClCompile Include="src\Market\MarketCanvas.cpp">
       <Filter>Source Files\Market</Filter>
     </ClCompile>
-    <ClCompile Include="src\Market\Model\Index.cpp">
-      <Filter>Source Files\Market\Model</Filter>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\blob.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\common.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\connection-parameters.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\connection-pool.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\error.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\into-type.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\logger.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\once-temp-type.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\prepare-temp-type.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\procedure.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\ref-counted-prepare-info.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\ref-counted-statement.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\row.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\rowid.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\session.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\soci-simple.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\statement.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\transaction.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\use-type.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\values.cpp">
+      <Filter>Source Files\soci\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\backends\sqlite3\blob.cpp">
+      <Filter>Source Files\soci\backends\sqlite3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\backends\sqlite3\error.cpp">
+      <Filter>Source Files\soci\backends\sqlite3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\backends\sqlite3\factory.cpp">
+      <Filter>Source Files\soci\backends\sqlite3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\backends\sqlite3\row-id.cpp">
+      <Filter>Source Files\soci\backends\sqlite3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\backends\sqlite3\session.cpp">
+      <Filter>Source Files\soci\backends\sqlite3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\backends\sqlite3\standard-into-type.cpp">
+      <Filter>Source Files\soci\backends\sqlite3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\backends\sqlite3\standard-use-type.cpp">
+      <Filter>Source Files\soci\backends\sqlite3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\backends\sqlite3\statement.cpp">
+      <Filter>Source Files\soci\backends\sqlite3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\backends\sqlite3\vector-into-type.cpp">
+      <Filter>Source Files\soci\backends\sqlite3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\backends\sqlite3\vector-use-type.cpp">
+      <Filter>Source Files\soci\backends\sqlite3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\soci\core\backend-loader.cpp">
+      <Filter>Source Files\soci\core</Filter>
     </ClCompile>
     <ClCompile Include="src\Market\Painter.cpp">
       <Filter>Source Files\Market</Filter>
@@ -128,5 +230,19 @@
     <ClInclude Include="inc\Market\Model\Price.h">
       <Filter>Header Files\Market\Model</Filter>
     </ClInclude>
+    <ClInclude Include="src\soci\backends\sqlite3\common.h">
+      <Filter>Source Files\soci\backends\sqlite3</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Market\Model\IndexImpl.h">
+      <Filter>Header Files\Market\Model</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="src\Market\Model\IndexImpl.cu">
+      <Filter>Source Files\Market\Model</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\Market\Model\Index.cpp">
+      <Filter>Source Files\Market\Model</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>
