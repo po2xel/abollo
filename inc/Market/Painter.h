@@ -20,10 +20,6 @@ namespace abollo
 
 
 
-union PriceWithIndex;
-class Index;
-
-
 class Painter final
 {
 private:

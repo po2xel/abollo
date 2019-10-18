@@ -62,7 +62,6 @@ public:
     [[nodiscard]] std::size_t Size() const;
 
     [[nodiscard]] std::tuple<float, float, float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize) const;
-    [[nodiscard]] std::tuple<float, float, float, float> MinMax(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate) const;
 };
 
 

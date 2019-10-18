@@ -24,7 +24,7 @@ void Index::LoadIndex(const date::year_month_day& aStartDate, const date::year_m
 
 
 std::pair<DatePriceZipIterator, DatePriceZipIterator> Index::Saxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
-                                                                      const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const
+                                                                   const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const
 {
     return mImpl->Saxpy(aStartIndex, aSize, aScaleX, aTransX, aScaleY, aTransY, aScaleZ, aTransZ);
 }
@@ -38,12 +38,6 @@ std::size_t Index::Size() const
 std::tuple<float, float, float, float> Index::MinMax(const std::size_t aStartIndex, const std::size_t aSize) const
 {
     return mImpl->MinMax(aStartIndex, aSize);
-}
-
-
-std::tuple<float, float, float, float> Index::MinMax(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate) const
-{
-    return mImpl->MinMax(aStartDate, aEndDate);
 }
 
 
