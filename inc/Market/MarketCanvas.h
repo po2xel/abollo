@@ -7,7 +7,7 @@
 
 #include <skia/include/core/SkSurface.h>
 
-#include "Market/Model/Index.h"
+#include "Market/Model/DataAnalyzer.h"
 #include "Market/Painter.h"
 
 
@@ -25,7 +25,7 @@ private:
     SkScalar mMousePosX{0.f};
     SkScalar mMousePosY{0.f};
 
-    Index mIndexData;
+    DataAnalyzer mIndexData;
 
     mutable uint32_t mStartIndex{0};
     mutable uint32_t mSize{20};

@@ -224,24 +224,24 @@
     <ClInclude Include="inc\Market\Model\TradeDate.h">
       <Filter>Header Files\Market\Model</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Market\Model\Index.h">
-      <Filter>Header Files\Market\Model</Filter>
-    </ClInclude>
     <ClInclude Include="inc\Market\Model\Price.h">
       <Filter>Header Files\Market\Model</Filter>
     </ClInclude>
     <ClInclude Include="src\soci\backends\sqlite3\common.h">
       <Filter>Source Files\soci\backends\sqlite3</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Market\Model\IndexImpl.h">
+    <ClInclude Include="inc\Market\Model\DataAnalyzer.h">
+      <Filter>Header Files\Market\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Market\Model\DataAnalyzerImpl.h">
       <Filter>Header Files\Market\Model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="src\Market\Model\IndexImpl.cu">
+    <CudaCompile Include="src\Market\Model\DataAnalyzer.cpp">
       <Filter>Source Files\Market\Model</Filter>
     </CudaCompile>
-    <CudaCompile Include="src\Market\Model\Index.cpp">
+    <CudaCompile Include="src\Market\Model\DataAnalyzerImpl.cu">
       <Filter>Source Files\Market\Model</Filter>
     </CudaCompile>
   </ItemGroup>

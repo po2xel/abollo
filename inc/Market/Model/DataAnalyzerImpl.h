@@ -1,5 +1,5 @@
-#ifndef __ABOLLO_MARKET_MODEL_INDEX_IMPL_H__
-#define __ABOLLO_MARKET_MODEL_INDEX_IMPL_H__
+#ifndef __ABOLLO_MARKET_MODEL_DATA_ANALYZER_IMPL_H__
+#define __ABOLLO_MARKET_MODEL_DATA_ANALYZER_IMPL_H__
 
 
 #include <string>
@@ -22,7 +22,7 @@ namespace abollo
 
 
 
-class IndexImpl final
+class DataAnalyzerImpl final
 {
 private:
     constexpr static const char* INDEX_DAILY_SQL = "SELECT date, open, close, low, high, volume, amount "
@@ -64,7 +64,7 @@ private:
     std::tuple<float, float, float, float, float, float> mMinMax;
 
 public:
-    IndexImpl() : mIndexDailyStmt(mSession.prepare << INDEX_DAILY_SQL)
+    DataAnalyzerImpl() : mIndexDailyStmt(mSession.prepare << INDEX_DAILY_SQL)
     {
     }
 
@@ -97,4 +97,4 @@ public:
 
 
 
-#endif    // __ABOLLO_MARKET_MODEL_INDEX_IMPL_H__
+#endif    // __ABOLLO_MARKET_MODEL_DATA_ANALYZER_IMPL_H__

@@ -1,4 +1,4 @@
-#include "Market/Model/IndexImpl.h"
+#include "Market/Model/DataAnalyzerImpl.h"
 
 #include "Market/Model/TradeDate.h"
 
@@ -17,7 +17,7 @@ namespace abollo
 
 
 
-void IndexImpl::LoadIndex(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate)
+void DataAnalyzerImpl::LoadIndex(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate)
 {
     using soci::into;
     using soci::use;
@@ -53,7 +53,7 @@ void IndexImpl::LoadIndex(const date::year_month_day& aStartDate, const date::ye
 }
 
 
-std::tuple<float, float, float, float> IndexImpl::MinMax(const std::size_t aStartIndex, const std::size_t aSize) const
+std::tuple<float, float, float, float> DataAnalyzerImpl::MinMax(const std::size_t aStartIndex, const std::size_t aSize) const
 {
     if (aStartIndex > mPriceCount)
         throw std::out_of_range("Start index out of range.");
@@ -70,7 +70,7 @@ std::tuple<float, float, float, float> IndexImpl::MinMax(const std::size_t aStar
 }
 
 
-std::pair<DatePriceZipIterator, DatePriceZipIterator> IndexImpl::Saxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
+std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzerImpl::Saxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
                                                                        const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const
 {
     using thrust::placeholders::_1;

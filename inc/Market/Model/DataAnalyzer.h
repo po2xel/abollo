@@ -1,5 +1,5 @@
-#ifndef __ABOLLO_MARKET_INDEX_H__
-#define __ABOLLO_MARKET_INDEX_H__
+#ifndef __ABOLLO_MARKET_MODEL_DATA_ANALYZER_H__
+#define __ABOLLO_MARKET_MODEL_DATA_ANALYZER_H__
 
 
 
@@ -42,17 +42,17 @@ namespace abollo
 
 
 
-class IndexImpl;
+class DataAnalyzerImpl;
 
 
-class Index final
+class DataAnalyzer final
 {
 private:
-    std::unique_ptr<IndexImpl> mImpl;
+    std::unique_ptr<DataAnalyzerImpl> mImpl;
 
 public:
-    Index();
-    ~Index();
+    DataAnalyzer();
+    ~DataAnalyzer();
 
     void LoadIndex(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate) const;
 
@@ -70,4 +70,4 @@ public:
 
 
 
-#endif    // __ABOLLO_MARKET_INDEX_PAINTER_H__
+#endif    // __ABOLLO_MARKET_MODEL_DATA_ANALYZER_H__

@@ -188,7 +188,7 @@
     <ClCompile Include="src\fmt\format.cc" />
     <ClCompile Include="src\Graphics\VulkanContext.cpp" />
     <ClCompile Include="src\Market\MarketCanvas.cpp" />
-    <CudaCompile Include="src\Market\Model\Index.cpp" />
+    <CudaCompile Include="src\Market\Model\DataAnalyzer.cpp" />
     <ClCompile Include="src\Market\Painter.cpp">
       <AdditionalCompilerOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/wd4819 /wd4324 /wd4201 /wd5051 /wd4515</AdditionalCompilerOptions>
     </ClCompile>
@@ -226,7 +226,7 @@
     <ClCompile Include="src\soci\core\use-type.cpp" />
     <ClCompile Include="src\soci\core\values.cpp" />
     <ClCompile Include="src\Window\Application.cpp" />
-    <CudaCompile Include="src\Market\Model\IndexImpl.cu" />
+    <CudaCompile Include="src\Market\Model\DataAnalyzerImpl.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\Graphics\vk\Instance.h" />
@@ -237,8 +237,8 @@
     <ClInclude Include="inc\Graphics\vk\vk.h" />
     <ClInclude Include="inc\Graphics\VulkanContext.h" />
     <ClInclude Include="inc\Market\MarketCanvas.h" />
-    <ClInclude Include="inc\Market\Model\Index.h" />
-    <ClInclude Include="inc\Market\Model\IndexImpl.h" />
+    <ClInclude Include="inc\Market\Model\DataAnalyzer.h" />
+    <ClInclude Include="inc\Market\Model\DataAnalyzerImpl.h" />
     <ClInclude Include="inc\Market\Model\Price.h" />
     <ClInclude Include="inc\Market\Model\TradeDate.h" />
     <ClInclude Include="inc\Market\Painter.h" />
