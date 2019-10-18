@@ -23,9 +23,9 @@ MarketCanvas::MarketCanvas()
 {
     using date::operator"" _y;
 
-    constexpr auto lStartDate{2016_y / 1 / 1}, lEndDate{2020_y / 1 / 1};
+    constexpr auto lStartDate{2000_y / 1 / 1}, lEndDate{2020_y / 1 / 1};
 
-    mIndexData.LoadIndex(lStartDate, lEndDate);
+    mIndexData.LoadIndex("000905.SH", lStartDate, lEndDate);
 
     mpMarketPainter = std::make_unique<Painter>();
 }
@@ -65,7 +65,7 @@ std::pair<float, float> VolumeTrans(SkCanvas& aCanvas, const SkMatrix& aTransMat
 }
 
 
-void MarketCanvas::Paint(SkSurface* apSurface) const
+void MarketCanvas::Paint(SkSurface* apSurface)
 {
     auto& lCanvas = *(apSurface->getCanvas());
 
@@ -101,24 +101,34 @@ void MarketCanvas::Paint(SkSurface* apSurface) const
     const auto height  = static_cast<SkScalar>(lCanvasClipBounds.height());    // canvas height
     const auto lRangeX = 20.f;                                                 // range in x axis is: [-Inf., rangeX]
 
-    const auto& lTransMat   = lCanvas.getTotalMatrix();
-    const auto lTransX1     = lTransMat.getTranslateX();
-    const auto lScaleX1     = lTransMat.getScaleX();
-    const auto lTotalTranX  = (lScaleX1 - 1.f) * width + lTransX1;
-    const auto lCandleWidth = lScaleX1 * width / lRangeX;
+    const auto& lTransMat  = lCanvas.getTotalMatrix();
+    const auto lTransX1    = lTransMat.getTranslateX();
+    const auto lScaleX1    = lTransMat.getScaleX();
+    const auto lTotalTranX = (lScaleX1 - 1.f) * width + lTransX1;
+    mCandleWidth           = lScaleX1 * width / lRangeX;
 
-    const auto lStartIndex = lTotalTranX > 0.f ? static_cast<uint32_t>(lTotalTranX / lCandleWidth + 0.5f) : 0u;
+    mScaleX = -width * lScaleX1 / lRangeX;
+    mTransX = lScaleX1 * width + lTransX1;
 
-    if (lStartIndex < mIndexData.Size())
-        mStartIndex = lStartIndex;
+    // const auto lStartIndex = lTotalTranX > 0.f ? static_cast<uint32_t>(lTotalTranX / mCandleWidth + 0.5f) : 0u;
+    
 
-    const auto lSize = static_cast<uint32_t>(std::ceil(width / lCandleWidth + 1.f));
+    // std::cout << "Start Index: " << std::lround((width - mTransX) / mScaleX) << std::endl;
+    // std::cout << "Candle Index: " << std::lround((mMousePosX - mTransX) / mScaleX) << std::endl;
+
+    const auto lStartIndex = std::lround((width - 1 - mTransX) / mScaleX);
+    if (lStartIndex >= 0 && static_cast<std::size_t>(lStartIndex) < mIndexData.Size())
+        mStartIndex = static_cast<uint32_t>(lStartIndex);
+    else
+        mStartIndex = 0;
+
+    const auto lSize = static_cast<uint32_t>(std::ceil(width / mCandleWidth + 1.f));
 
     if (lSize <= mIndexData.Size())
         mSize = lSize;
 
-    // std::cout << "Candle StartIndex: " << mStartIndex << std::endl;
-    // std::cout << "Candle Size: " << mSize << std::endl;
+    std::cout << "Start Index: " << mStartIndex << std::endl;
+    std::cout << "Candle Index: " << mSelectedCandle << std::endl;
 
     {
         SkAutoCanvasRestore lGuard2(&lCanvas, true);
@@ -161,9 +171,14 @@ void MarketCanvas::Paint(SkSurface* apSurface) const
         constexpr auto lYDelta = 60u;
         const auto lCount      = static_cast<uint32_t>(std::ceil(height / lYDelta));
 
-        mpMarketPainter->DrawCandle(lCanvas, lTransPrices, lCandleWidth);
+        mpMarketPainter->DrawCandle(lCanvas, lTransPrices, mCandleWidth);
         mpMarketPainter->DrawPriceAxis(lCanvas, width, lLow, lHigh, lCount, lScaleY, lTransY);
         mpMarketPainter->DrawVolumeAxis(lCanvas, 0.f, lMin, lMax, lCount, lScaleZ, lTransZ);
+
+        assert(mSelectedCandle >= mStartIndex);
+
+        const auto& lSelectedCandle = mIndexData[mSelectedCandle - mStartIndex];
+        mpMarketPainter->Highlight(lCanvas, lSelectedCandle, mCandleWidth);
     }
 }
 

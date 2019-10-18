@@ -20,6 +20,9 @@ namespace abollo
 
 
 
+union PriceWithIndex;
+
+
 class Painter final
 {
 private:
@@ -50,6 +53,8 @@ private:
 public:
     Painter();
     virtual ~Painter() = default;
+
+    void Highlight(SkCanvas& aCanvas, const PriceWithIndex& aSelectedCandle, const SkScalar aCandleWidth);
 
     void DrawCandle(SkCanvas& aCanvas, const std::pair<DatePriceZipIterator, DatePriceZipIterator>& lData, const SkScalar aCandleWidth);
 

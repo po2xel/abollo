@@ -27,19 +27,19 @@ class DataAnalyzerImpl final
 private:
     constexpr static const char* INDEX_DAILY_SQL = "SELECT date, open, close, low, high, volume, amount "
                                                    "FROM index_daily_market "
-                                                   "WHERE date >= :start AND date <= :end "
+                                                   "WHERE code = :code AND date >= :start AND date <= :end "
                                                    "ORDER BY date DESC";
 
     constexpr static std::size_t DEFAULT_BUFFER_ROW_SIZE = 6;
-    constexpr static std::size_t DEFAULT_BUFFER_COL_SIZE = 1024;
-    constexpr static std::size_t DEFAULT_BUFFER_CAPACITY = DEFAULT_BUFFER_ROW_SIZE * DEFAULT_BUFFER_COL_SIZE;
+    constexpr static std::size_t DEFAULT_BUFFER_COL_SIZE{10240u};
 
     constexpr static std::size_t DEFAULT_BUFFER_OPEN_POS   = 0;
-    constexpr static std::size_t DEFAULT_BUFFER_CLOSE_POS  = DEFAULT_BUFFER_COL_SIZE;
-    constexpr static std::size_t DEFAULT_BUFFER_LOW_POS    = DEFAULT_BUFFER_COL_SIZE + DEFAULT_BUFFER_COL_SIZE;
-    constexpr static std::size_t DEFAULT_BUFFER_HIGH_POS   = DEFAULT_BUFFER_COL_SIZE * 3;
-    constexpr static std::size_t DEFAULT_BUFFER_VOLUME_POS = DEFAULT_BUFFER_COL_SIZE * 4;
-    constexpr static std::size_t DEFAULT_BUFFER_AMOUNT_POS = DEFAULT_BUFFER_COL_SIZE * 5;
+    constexpr static std::size_t DEFAULT_BUFFER_CLOSE_POS  = DEFAULT_BUFFER_OPEN_POS + DEFAULT_BUFFER_COL_SIZE;
+    constexpr static std::size_t DEFAULT_BUFFER_LOW_POS    = DEFAULT_BUFFER_CLOSE_POS + DEFAULT_BUFFER_COL_SIZE;
+    constexpr static std::size_t DEFAULT_BUFFER_HIGH_POS   = DEFAULT_BUFFER_LOW_POS + DEFAULT_BUFFER_COL_SIZE;
+    constexpr static std::size_t DEFAULT_BUFFER_VOLUME_POS = DEFAULT_BUFFER_HIGH_POS + DEFAULT_BUFFER_COL_SIZE;
+    constexpr static std::size_t DEFAULT_BUFFER_AMOUNT_POS = DEFAULT_BUFFER_VOLUME_POS + DEFAULT_BUFFER_COL_SIZE;
+    constexpr static std::size_t DEFAULT_BUFFER_CAPACITY   = DEFAULT_BUFFER_AMOUNT_POS + DEFAULT_BUFFER_COL_SIZE;
 
     soci::session mSession{soci::sqlite3, R"(data/ashare.db)"};
 
@@ -61,8 +61,6 @@ private:
 
     std::size_t mPriceCount{0};
 
-    std::tuple<float, float, float, float, float, float> mMinMax;
-
 public:
     DataAnalyzerImpl() : mIndexDailyStmt(mSession.prepare << INDEX_DAILY_SQL)
     {
@@ -78,12 +76,17 @@ public:
         return mDateBuffer;
     }
 
-    void LoadIndex(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate);
+    void LoadIndex(const std::string& aCode, const date::year_month_day& aStartDate, const date::year_month_day& aEndDate);
 
     [[nodiscard]] std::tuple<float, float, float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize) const;
 
     [[nodiscard]] std::pair<DatePriceZipIterator, DatePriceZipIterator> Saxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
                                                                               const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const;
+
+    [[nodiscard]] PriceWithIndex operator[](const std::size_t aIndex) const
+    {
+        return PriceWithIndex(mHostTempBuffer[aIndex]);
+    }
 
     [[nodiscard]] std::size_t Size() const
     {

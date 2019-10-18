@@ -78,10 +78,8 @@ int main(int /*argc*/, char* /*argv*/[])
     lEvents.On<MouseEvent::eMotion>([&lVulkanContext, &lMarketCanvas](const Sint32 aPosX, const Sint32 aPosY, const Sint32 aPosRelX, const Sint32 aPosRelY, const Uint32 aMask) {
         lMarketCanvas.Move(static_cast<SkScalar>(aPosX), static_cast<SkScalar>(aPosY));
 
-        if ((aMask & MouseMask::eLeft) != MouseMask::eLeft)
-            return;
-
-        lMarketCanvas.MoveTo(static_cast<SkScalar>(aPosRelX), static_cast<SkScalar>(aPosRelY));
+        if ((aMask & MouseMask::eLeft) == MouseMask::eLeft)
+            lMarketCanvas.MoveTo(static_cast<SkScalar>(aPosRelX), static_cast<SkScalar>(aPosRelY));
 
         auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
 

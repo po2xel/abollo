@@ -17,13 +17,14 @@ namespace abollo
 
 
 
-void DataAnalyzerImpl::LoadIndex(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate)
+void DataAnalyzerImpl::LoadIndex(const std::string& aCode, const date::year_month_day& aStartDate, const date::year_month_day& aEndDate)
 {
     using soci::into;
     using soci::use;
 
     Price lPrice{};
 
+    mIndexDailyStmt.exchange(use(aCode, "code"));
     mIndexDailyStmt.exchange(use(aStartDate, "start"));
     mIndexDailyStmt.exchange(use(aEndDate, "end"));
     mIndexDailyStmt.exchange(into(lPrice));
@@ -71,7 +72,7 @@ std::tuple<float, float, float, float> DataAnalyzerImpl::MinMax(const std::size_
 
 
 std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzerImpl::Saxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
-                                                                       const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const
+                                                                              const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const
 {
     using thrust::placeholders::_1;
 

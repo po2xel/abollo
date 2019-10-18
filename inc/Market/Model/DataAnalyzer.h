@@ -54,13 +54,13 @@ public:
     DataAnalyzer();
     ~DataAnalyzer();
 
-    void LoadIndex(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate) const;
+    void LoadIndex(const std::string& aCode, const date::year_month_day& aStartDate, const date::year_month_day& aEndDate) const;
 
     [[nodiscard]] std::pair<DatePriceZipIterator, DatePriceZipIterator> Saxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
                                                                               const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const;
 
+    [[nodiscard]] PriceWithIndex operator[](const std::size_t aIndex) const;
     [[nodiscard]] std::size_t Size() const;
-
     [[nodiscard]] std::tuple<float, float, float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize) const;
 };
 

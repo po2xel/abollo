@@ -8,8 +8,8 @@
 
 #include <soci/soci.h>
 #include <soci/values.h>
-#include <thrust/tuple.h>
 #include <thrust/host_vector.h>
+#include <thrust/tuple.h>
 #include <boost/circular_buffer.hpp>
 
 
@@ -80,6 +80,10 @@ union PriceWithIndex {
         float volume;
         float amount;
     };
+
+    explicit PriceWithIndex(const Float7& aFloat7) : tuples(aFloat7)
+    {
+    }
 };
 
 

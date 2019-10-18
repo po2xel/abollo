@@ -17,9 +17,9 @@ DataAnalyzer::DataAnalyzer() : mImpl{std::make_unique<DataAnalyzerImpl>()}
 DataAnalyzer::~DataAnalyzer() = default;
 
 
-void DataAnalyzer::LoadIndex(const date::year_month_day& aStartDate, const date::year_month_day& aEndDate) const
+void DataAnalyzer::LoadIndex(const std::string& aCode, const date::year_month_day& aStartDate, const date::year_month_day& aEndDate) const
 {
-    mImpl->LoadIndex(aStartDate, aEndDate);
+    mImpl->LoadIndex(aCode, aStartDate, aEndDate);
 }
 
 
@@ -28,6 +28,13 @@ std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy(const 
 {
     return mImpl->Saxpy(aStartIndex, aSize, aScaleX, aTransX, aScaleY, aTransY, aScaleZ, aTransZ);
 }
+
+
+PriceWithIndex DataAnalyzer::operator[](const std::size_t aIndex) const
+{
+    return (*mImpl)[aIndex];
+}
+
 
 std::size_t DataAnalyzer::Size() const
 {

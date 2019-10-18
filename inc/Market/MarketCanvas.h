@@ -3,6 +3,7 @@
 
 
 
+#include <cmath>
 #include <memory>
 
 #include <skia/include/core/SkSurface.h>
@@ -27,8 +28,13 @@ private:
 
     DataAnalyzer mIndexData;
 
-    mutable uint32_t mStartIndex{0};
-    mutable uint32_t mSize{20};
+    uint32_t mSelectedCandle{0};
+
+    uint32_t mStartIndex{0};
+    uint32_t mSize{20};
+    float mCandleWidth;
+    float mScaleX{1.f};
+    float mTransX{0.f};
 
     std::unique_ptr<Painter> mpMarketPainter;
 
@@ -39,6 +45,9 @@ public:
     {
         mMousePosX = aPosX;
         mMousePosY = aPosY;
+
+        if (const auto lCandlePosX = std::lround((aPosX - mTransX) / mScaleX); lCandlePosX >= 0)
+            mSelectedCandle = static_cast<uint32_t>(lCandlePosX);
     }
 
     void MoveTo(const SkScalar aPosX, const SkScalar /*aPosY*/)
@@ -66,7 +75,7 @@ public:
     }
 
     void Capture(SkSurface* apSurface) const;
-    void Paint(SkSurface* apSurface) const;
+    void Paint(SkSurface* apSurface);
 };
 
 
