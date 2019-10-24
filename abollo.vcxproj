@@ -237,9 +237,11 @@
     <ClInclude Include="inc\Graphics\vk\vk.h" />
     <ClInclude Include="inc\Graphics\VulkanContext.h" />
     <ClInclude Include="inc\Market\MarketCanvas.h" />
+    <ClInclude Include="inc\Market\Model\ChunkedArray.h" />
     <ClInclude Include="inc\Market\Model\DataAnalyzer.h" />
     <ClInclude Include="inc\Market\Model\DataAnalyzerImpl.h" />
     <ClInclude Include="inc\Market\Model\Price.h" />
+    <ClInclude Include="inc\Market\Model\Table.h" />
     <ClInclude Include="inc\Market\Model\TradeDate.h" />
     <ClInclude Include="inc\Market\Painter.h" />
     <ClInclude Include="inc\Utility\NonCopyable.h" />

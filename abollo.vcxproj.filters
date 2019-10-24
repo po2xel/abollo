@@ -236,6 +236,12 @@
     <ClInclude Include="inc\Market\Model\DataAnalyzerImpl.h">
       <Filter>Header Files\Market\Model</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Market\Model\Table.h">
+      <Filter>Header Files\Market\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Market\Model\ChunkedArray.h">
+      <Filter>Header Files\Market\Model</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\Market\Model\DataAnalyzer.cpp">
