@@ -45,9 +45,6 @@ public:
     {
         mMousePosX = aPosX;
         mMousePosY = aPosY;
-
-        if (const auto lCandlePosX = std::lround((aPosX - mTransX) / mScaleX); lCandlePosX >= 0)
-            mSelectedCandle = static_cast<uint32_t>(lCandlePosX);
     }
 
     void MoveTo(const SkScalar aPosX, const SkScalar /*aPosY*/)

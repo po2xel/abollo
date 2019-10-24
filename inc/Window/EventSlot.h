@@ -406,142 +406,41 @@ public:
 
 
 
-class FallbackEvent
-{
-public:
-    template <auto t, typename Slot>
-    static constexpr void On(Slot&& /*aSlot*/)
-    {
-    }
-
-    template <auto t, typename Slot>
-    static constexpr void Off()
-    {
-    }
-
-    template <auto t, typename... Args>
-    static constexpr void Signal(Args&&... /*aArgs*/)
-    {
-    }
-};
-
-
-
 }    // namespace internal
 
 
 
-template <auto e, auto... Es>
-class EventSlot : public internal::EventTrait<decltype(e), e>, public EventSlot<Es...>
+template <auto... Es>
+class EventSlot : private internal::EventTrait<decltype(Es), Es>...
 {
 private:
-    using BaseTrait = internal::EventTrait<decltype(e), e>;
-    using BaseEvent = EventSlot<Es...>;
+    template <typename... Args>
+    constexpr static void SwallowArgs(Args&&... /*aArgs*/)
+    {
+    }
 
 public:
-    template <auto t, typename Slot>
-    constexpr void On(Slot&& aSlot)
+    template <auto... E, typename Slot>
+    void On(Slot&& aSlot)
     {
-        using TraitType = internal::EventTrait<decltype(t), t>;
-
-        if constexpr (std::is_same_v<BaseTrait, TraitType>)
-            BaseTrait::On(std::forward<Slot>(aSlot));
-        else
-            BaseEvent::template On<t>(std::forward<Slot>(aSlot));
+        if constexpr ((std::is_base_of_v<internal::EventTrait<decltype(E), E>, EventSlot<Es...>> && ...))
+            (internal::EventTrait<decltype(E), E>::On(std::forward<Slot>(aSlot)), ...);
     }
 
-    template <auto t0, auto t1, typename Slot>
-    constexpr void On(Slot&& aSlot)
+    template <auto... E>
+    void Off()
     {
-        On<t0>(aSlot);
-        On<t1>(aSlot);
+        if constexpr ((std::is_base_of_v<internal::EventTrait<decltype(E), E>, EventSlot<Es...>> && ...))
+            (internal::EventTrait<decltype(E), E>::Off(), ...);
     }
 
-    template <auto t0, auto t1, auto t2, typename Slot>
-    constexpr void On(Slot&& aSlot)
-    {
-        On<t0>(aSlot);
-        On<t1, t2>(aSlot);
-    }
-
-    template <auto t0, auto t1, auto t2, auto t3, typename Slot>
-    constexpr void On(Slot&& aSlot)
-    {
-        On<t0>(aSlot);
-        On<t1, t2, t3>(aSlot);
-    }
-
-    template <auto t0, auto t1, auto t2, auto t3, auto t4, typename Slot>
-    constexpr void On(Slot&& aSlot)
-    {
-        On<t0>(aSlot);
-        On<t1, t2, t3, t4>(aSlot);
-    }
-
-    template <auto t>
-    constexpr void Off() const
-    {
-        using TraitType = internal::EventTrait<decltype(t), t>;
-
-        if constexpr (std::is_same_v<BaseTrait, TraitType>)
-            BaseTrait::Off();
-        else
-            BaseEvent::template Off<t>();
-    }
-
-    template <auto t, typename... Args>
+    template <auto... E, typename... Args>
     constexpr void Signal(Args&&... aArgs) const
     {
-        using TraitType = internal::EventTrait<decltype(t), t>;
-
-        if constexpr (std::is_same_v<BaseTrait, TraitType>)
-            BaseTrait::Signal(std::forward<Args>(aArgs)...);
+        if constexpr ((std::is_base_of_v<internal::EventTrait<decltype(E), E>, EventSlot<Es...>> && ...))
+            (internal::EventTrait<decltype(E), E>::Signal(std::forward<Args>(aArgs)...), ...);
         else
-            BaseEvent::template Signal<t>(std::forward<Args>(aArgs)...);
-    }
-};
-
-
-
-template <auto e>
-class EventSlot<e> : public internal::EventTrait<decltype(e), e>, public internal::FallbackEvent
-{
-private:
-    using BaseTrait = internal::EventTrait<decltype(e), e>;
-    using BaseEvent = internal::FallbackEvent;
-
-public:
-    template <auto t, typename Slot>
-    constexpr void On(Slot&& aSlot)
-    {
-        using TraitType = internal::EventTrait<decltype(t), t>;
-
-        if constexpr (std::is_same_v<BaseTrait, TraitType>)
-            BaseTrait::On(std::forward<Slot>(aSlot));
-        else
-            BaseEvent::On<t>(std::forward<Slot>(aSlot));
-    }
-
-    template <auto t>
-    constexpr void Off() const
-    {
-        using TraitType = internal::EventTrait<decltype(t), t>;
-
-        if constexpr (std::is_same_v<BaseTrait, TraitType>)
-            BaseTrait::Off();
-        else
-            BaseEvent::Off<t>();
-    }
-
-    template <auto t, typename... Args>
-    constexpr void Signal(Args&&... aArgs) const
-    {
-        using TraitType = internal::EventTrait<decltype(t), t>;
-
-        if constexpr (std::is_same_v<BaseTrait, TraitType>)
-            BaseTrait::Signal(std::forward<Args>(aArgs)...);
-        else
-            BaseEvent::Signal<t>(std::forward<Args>(aArgs)...);
+            SwallowArgs(std::forward<Args>(aArgs)...);
     }
 };
 

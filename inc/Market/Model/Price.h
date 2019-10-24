@@ -11,6 +11,7 @@
 #include <thrust/host_vector.h>
 #include <thrust/tuple.h>
 #include <boost/circular_buffer.hpp>
+#include <utility>
 
 
 
@@ -81,7 +82,7 @@ union PriceWithIndex {
         float amount;
     };
 
-    explicit PriceWithIndex(const Float7& aFloat7) : tuples(aFloat7)
+    explicit PriceWithIndex(Float7 aFloat7) : tuples(std::move(aFloat7))
     {
     }
 };

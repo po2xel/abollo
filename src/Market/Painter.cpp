@@ -144,6 +144,15 @@ void Painter::Highlight(SkCanvas& aCanvas, const PriceWithIndex& aSelectedCandle
     mCandlePaint.setColor(lCandleColor);
 
     aCanvas.drawRect(lCandleRect, mCandlePaint);
+
+    auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, aSelectedCandle.volume);
+
+    aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.volume, mAxisLabelFont, mAxisPaint);
+
+    // aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.open, mAxisLabelFont, mAxisPaint);
+    // aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.close, mAxisLabelFont, mAxisPaint);
+    // aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.low, mAxisLabelFont, mAxisPaint);
+    // aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.high, mAxisLabelFont, mAxisPaint);
 }
 
 void Painter::DrawCandle(SkCanvas& aCanvas, const std::pair<DatePriceZipIterator, DatePriceZipIterator>& lData, const SkScalar aCandleWidth)
