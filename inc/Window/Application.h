@@ -138,4 +138,4 @@ public:
 
 
 
-#endif    // !__ABOLLO_WINDOW_APPLICATION_H__
+#endif    // __ABOLLO_WINDOW_APPLICATION_H__

@@ -13,25 +13,13 @@ namespace abollo
 
 
 
-enum class ColumnType : uint8_t
-{
-    eDate,
-    eOpen,
-    eClose,
-    eLow,
-    eHigh,
-    ePreClose,
-    eChange,
-    ePctChange,
-    eVolume,
-    eAmount
-};
-
-
-
-template <typename C, const std::size_t Size, ColumnType Y>
+template <typename C, const std::size_t Size, typename Tag>
 class ChunkedArray
 {
+public:
+    using iterator       = typename C::iterator;
+    using const_iterator = typename C::const_iterator;
+
 private:
     C mColumn;
 
@@ -69,11 +57,22 @@ public:
     {
         return mColumn.cend();
     }
+
+    auto& operator[](const std::size_t aIndex)
+    {
+        return mColumn[aIndex];
+    }
+
+    auto& operator[](const std::size_t aIndex) const
+    {
+        return mColumn[aIndex];
+    }
 };
 
 
 
 }    // namespace abollo
+
 
 
 #endif    // __ABOLLO_MARKET_MODEL_CHUNKED_ARRAY_H__

@@ -9,6 +9,8 @@
 #include <skia/include/core/SkSurface.h>
 
 #include "Market/Model/DataAnalyzer.h"
+#include "Market/Model/DataLoader.h"
+#include "Market/Model/PagedMarketingTable.h"
 #include "Market/Painter.h"
 
 
@@ -16,6 +18,10 @@
 namespace abollo
 {
 
+
+
+using PagedTableType = PagedMarketingTable<float, 10, open_tag, close_tag, low_tag, high_tag, volume_tag, amount_tag>;
+using ColumnTypes    = Prices<PagedTableType::Schema>;
 
 
 class MarketCanvas final
@@ -26,17 +32,20 @@ private:
     SkScalar mMousePosX{0.f};
     SkScalar mMousePosY{0.f};
 
-    DataAnalyzer mIndexData;
-
     uint32_t mSelectedCandle{0};
 
     uint32_t mStartIndex{0};
     uint32_t mSize{20};
-    float mCandleWidth;
+    float mCandleWidth{0.f};
     float mScaleX{1.f};
     float mTransX{0.f};
 
     std::unique_ptr<Painter> mpMarketPainter;
+
+    DataAnalyzer mDataAnalyzer;
+    DataLoader mDataLoader;
+
+    PagedTableType mPagedTable;
 
 public:
     MarketCanvas();

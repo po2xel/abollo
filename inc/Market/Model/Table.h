@@ -3,14 +3,6 @@
 
 
 
-#include <algorithm>
-#include <string>
-#include <utility>
-
-#include <date/date.h>
-// #include <thrust/device_vector.h>
-#include <thrust/host_vector.h>
-
 #include "Market/Model/ChunkedArray.h"
 
 
@@ -20,12 +12,12 @@ namespace abollo
 
 
 
-template <typename C, const std::size_t Size, ColumnType Y>
+template <typename C, const std::size_t Size, typename Y>
 using Column = ChunkedArray<C, Size, Y>;
 
 
 
-template <typename C, const std::size_t Size, ColumnType... Ys>
+template <typename C, const std::size_t Size, typename... Ys>
 class Table : protected Column<C, Size, Ys>...
 {
 };

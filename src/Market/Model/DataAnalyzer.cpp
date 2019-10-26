@@ -48,5 +48,11 @@ std::tuple<float, float, float, float> DataAnalyzer::MinMax(const std::size_t aS
 }
 
 
+std::pair<float, float> DataAnalyzer::MinMax(const std::size_t aStartIndex, const std::size_t aSize, const ColumnTraits<price_tag> aTag) const
+{
+    return mImpl->MinMax(aStartIndex, aSize, aTag);
+}
+
+
 
 }    // namespace abollo

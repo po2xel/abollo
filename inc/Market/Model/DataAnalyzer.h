@@ -11,6 +11,7 @@
 
 #include <date/date.h>
 
+#include "Market/Model/ColumnTraits.h"
 #include "Market/Model/Price.h"
 
 
@@ -61,7 +62,9 @@ public:
 
     [[nodiscard]] PriceWithIndex operator[](const std::size_t aIndex) const;
     [[nodiscard]] std::size_t Size() const;
+
     [[nodiscard]] std::tuple<float, float, float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize) const;
+    [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize, const ColumnTraits<price_tag> aTag) const;
 };
 
 

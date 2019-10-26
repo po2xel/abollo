@@ -1,16 +1,14 @@
 #include "Market/Model/DataAnalyzerImpl.h"
 
-#include "Market/Model/TradeDate.h"
-
-
-#include <thrust/device_vector.h>
 #include <thrust/extrema.h>
 #include <thrust/functional.h>
 #include <thrust/host_vector.h>
 #include <thrust/iterator/zip_iterator.h>
-#include <thrust/sequence.h>
 #include <thrust/transform.h>
 #include <thrust/tuple.h>
+
+#include "Market/Model/TradeDate.h"
+
 
 
 namespace abollo
@@ -18,71 +16,65 @@ namespace abollo
 
 
 
-void DataAnalyzerImpl::LoadIndex(const std::string& aCode, const date::year_month_day& aStartDate, const date::year_month_day& aEndDate)
+void DataAnalyzerImpl::LoadIndex(const std::string& /*aCode*/, const date::year_month_day& /*aStartDate*/, const date::year_month_day& /*aEndDate*/)
 {
-    using soci::into;
-    using soci::use;
+    // using soci::into;
+    // using soci::use;
 
-    // thrust::host_vector<float> lh(8);
-    // thrust::sequence(lh.begin(), lh.end());
-    // std::copy(lh.begin(), lh.end(), std::ostream_iterator<float>(std::cout, "\t"));
+    // Price lPrice{};
+
+    // mIndexDailyStmt.exchange(use(aCode, "code"));
+    // mIndexDailyStmt.exchange(use(aStartDate, "start"));
+    // mIndexDailyStmt.exchange(use(aEndDate, "end"));
+    // mIndexDailyStmt.exchange(into(lPrice));
+
+    // mIndexDailyStmt.define_and_bind();
+    // mIndexDailyStmt.execute();
+
+    // thrust::host_vector<float> lPriceData{DEFAULT_BUFFER_CAPACITY};
+
+    // PagedMarketingTable<float, 10, low_tag, high_tag> lPagedTable;
+
+    // while (mIndexDailyStmt.fetch())
+    //{
+    //    mDateBuffer.push_back(lPrice.date);
+
+    //    lPriceData[mPriceCount]                               = lPrice.open;
+    //    lPriceData[mPriceCount + DEFAULT_BUFFER_COL_SIZE]     = lPrice.close;
+    //    lPriceData[mPriceCount + DEFAULT_BUFFER_COL_SIZE * 2] = lPrice.low;
+    //    lPriceData[mPriceCount + DEFAULT_BUFFER_COL_SIZE * 3] = lPrice.high;
+    //    lPriceData[mPriceCount + DEFAULT_BUFFER_COL_SIZE * 4] = lPrice.volume;
+    //    lPriceData[mPriceCount + DEFAULT_BUFFER_COL_SIZE * 5] = lPrice.amount;
+
+    //    // lPagedTable.push_back<low_tag>(lPrice.low);
+    //    // lPagedTable.push_back<high_tag>(lPrice.high);
+
+    //    lPagedTable.push_back(lPrice);
+
+    //    ++mPriceCount;
+    //}
+
+    // mIndexDailyStmt.bind_clean_up();
+
+    // std::copy(lPagedTable.begin<low_tag>(), lPagedTable.begin<low_tag>() + 10, std::ostream_iterator<float>(std::cout, "\t"));
     // std::cout << std::endl;
-    //
-    // for (auto i = 0; i < 10; ++i)
-    // {
-    //     thrust::sequence(lh.begin(), lh.end(), i * 10.f);
-    //
-    //     mMarketingTable.Append<abollo::ColumnType::eOpen>(lh.begin(), lh.begin() + 5);
-    //     std::copy(mMarketingTable.begin<abollo::ColumnType::eOpen>(), mMarketingTable.end<abollo::ColumnType::eOpen>(), std::ostream_iterator<float>(std::cout, "\t"));
-    //     // std::cout << "\nfirst = " << mMarketingTable.mFirst << "\t" << "last = " << lt.mLast << std::endl;
-    //
-    //     std::cout << std::endl;
-    // }
-    
+
+    // std::copy(lPagedTable.begin<high_tag>(), lPagedTable.begin<high_tag>() + 10, std::ostream_iterator<float>(std::cout, "\t"));
     // std::cout << std::endl;
-    //
-    // for (auto i = 0; i < 10; ++i)
-    // {
-    //     thrust::sequence(lh.begin(), lh.end(), i * 10.f);
-    //
-    //     mMarketingTable.Prepend<abollo::ColumnType::eOpen>(lh.begin(), lh.begin() + 5);
-    //     std::copy(mMarketingTable.begin<abollo::ColumnType::eOpen>(), mMarketingTable.end<abollo::ColumnType::eOpen>(), std::ostream_iterator<float>(std::cout, "\t"));
-    //     // std::cout << "\nfirst = " << lt.mFirst << "\t"
-    //               // << "last = " << lt.mLast << std::endl;
-    //
-    //     std::cout << std::endl;
-    // }
 
+    // mMarketingTable.Append<date_tag>(mDateBuffer.begin(), mDateBuffer.end());
+    // mMarketingTable.Append<low_tag>(lPagedTable.begin<low_tag>(), lPagedTable.end<low_tag>());
+    // mMarketingTable.Append<high_tag>(lPagedTable.begin<high_tag>(), lPagedTable.end<high_tag>());
 
-    Price lPrice{};
+    // std::copy(mMarketingTable.begin<date_tag>(), mMarketingTable.begin<date_tag>() + 10, std::ostream_iterator<date::year_month_day>(std::cout, "\t"));
+    // std::cout << std::endl;
 
-    mIndexDailyStmt.exchange(use(aCode, "code"));
-    mIndexDailyStmt.exchange(use(aStartDate, "start"));
-    mIndexDailyStmt.exchange(use(aEndDate, "end"));
-    mIndexDailyStmt.exchange(into(lPrice));
+    // std::copy(mMarketingTable.begin<low_tag>(), mMarketingTable.begin<low_tag>() + 10, std::ostream_iterator<float>(std::cout, "\t"));
+    // std::cout << std::endl;
 
-    mIndexDailyStmt.define_and_bind();
-    mIndexDailyStmt.execute();
+    // std::copy(mMarketingTable.begin<high_tag>(), mMarketingTable.begin<high_tag>() + 10, std::ostream_iterator<float>(std::cout, "\t"));
 
-    thrust::host_vector<float> lPriceData{DEFAULT_BUFFER_CAPACITY};
-
-    while (mIndexDailyStmt.fetch())
-    {
-        mDateBuffer.push_back(lPrice.date);
-
-        lPriceData[mPriceCount]                               = lPrice.open;
-        lPriceData[mPriceCount + DEFAULT_BUFFER_COL_SIZE]     = lPrice.close;
-        lPriceData[mPriceCount + DEFAULT_BUFFER_COL_SIZE * 2] = lPrice.low;
-        lPriceData[mPriceCount + DEFAULT_BUFFER_COL_SIZE * 3] = lPrice.high;
-        lPriceData[mPriceCount + DEFAULT_BUFFER_COL_SIZE * 4] = lPrice.volume;
-        lPriceData[mPriceCount + DEFAULT_BUFFER_COL_SIZE * 5] = lPrice.amount;
-
-        ++mPriceCount;
-    }
-
-    mIndexDailyStmt.bind_clean_up();
-
-    mDeviceBuffer = lPriceData;
+    // mDeviceBuffer = lPriceData;
 }
 
 
@@ -100,6 +92,20 @@ std::tuple<float, float, float, float> DataAnalyzerImpl::MinMax(const std::size_
         thrust::minmax_element(mDeviceBuffer.begin() + DEFAULT_BUFFER_VOLUME_POS + aStartIndex, mDeviceBuffer.begin() + DEFAULT_BUFFER_VOLUME_POS + lEndIndex);
 
     return std::make_tuple(*lMinIter, *lMaxIter, *lVolMinMaxIter.first, *lVolMinMaxIter.second);
+}
+
+
+std::pair<float, float> DataAnalyzerImpl::MinMax(const std::size_t aStartIndex, const std::size_t aSize, const ColumnTraits<price_tag>) const
+{
+    if (aStartIndex > mPriceCount)
+        throw std::out_of_range("Start index out of range.");
+
+    const auto lEndIndex = aStartIndex + std::min(aSize, mPriceCount - aStartIndex);
+
+    const auto lMinIter = thrust::min_element(mMarketingTable.begin<low_tag>() + aStartIndex, mMarketingTable.begin<low_tag>() + lEndIndex);
+    const auto lMaxIter = thrust::min_element(mMarketingTable.begin<high_tag>() + aStartIndex, mMarketingTable.begin<high_tag>() + lEndIndex);
+
+    return std::make_pair(*lMinIter, *lMaxIter);
 }
 
 
@@ -137,8 +143,11 @@ std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzerImpl::Saxpy(co
 
     mHostTempBuffer.assign(mDeviceTempBuffer.begin(), mDeviceTempBuffer.begin() + lSize);
 
-    return std::make_pair(thrust::make_zip_iterator(thrust::make_tuple(mDateBuffer.begin() + aStartIndex, mHostTempBuffer.begin())),
-                          thrust::make_zip_iterator(thrust::make_tuple(mDateBuffer.begin() + lEndIndex, mHostTempBuffer.end())));
+    // return std::make_pair(thrust::make_zip_iterator(thrust::make_tuple(mDateBuffer.begin() + aStartIndex, mHostTempBuffer.begin())),
+    //                       thrust::make_zip_iterator(thrust::make_tuple(mDateBuffer.begin() + lEndIndex, mHostTempBuffer.end())));
+
+    return std::make_pair(thrust::make_zip_iterator(thrust::make_tuple(mMarketingTable.begin<date_tag>() + aStartIndex, mHostTempBuffer.begin())),
+                          thrust::make_zip_iterator(thrust::make_tuple(mMarketingTable.begin<date_tag>() + lEndIndex, mHostTempBuffer.end())));
 }
 
 

@@ -242,6 +242,18 @@
     <ClInclude Include="inc\Market\Model\ChunkedArray.h">
       <Filter>Header Files\Market\Model</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Market\Model\ColumnTraits.h">
+      <Filter>Header Files\Market\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Market\Model\PagedMarketingTable.h">
+      <Filter>Header Files\Market\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Market\Model\CircularMarketingTable.h">
+      <Filter>Header Files\Market\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Market\Model\DataLoader.h">
+      <Filter>Header Files\Market\Model</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\Market\Model\DataAnalyzer.cpp">
@@ -249,9 +261,6 @@
     </CudaCompile>
     <CudaCompile Include="src\Market\Model\DataAnalyzerImpl.cu">
       <Filter>Source Files\Market\Model</Filter>
-    </CudaCompile>
-    <CudaCompile Include="test.cu">
-      <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>

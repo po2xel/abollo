@@ -27,4 +27,4 @@ public:
 
 
 
-#endif    // !__ABOLLO_UTILITY_NONCOPYABLE_H__
+#endif    // __ABOLLO_UTILITY_NONCOPYABLE_H__

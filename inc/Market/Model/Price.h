@@ -3,15 +3,14 @@
 
 
 
-#include <date/date.h>
-#include <array>
+#include <tuple>
 
-#include <soci/soci.h>
-#include <soci/values.h>
+#include <date/date.h>
 #include <thrust/host_vector.h>
 #include <thrust/tuple.h>
-#include <boost/circular_buffer.hpp>
 #include <utility>
+
+#include "Market/Model/ColumnTraits.h"
 
 
 
@@ -22,47 +21,57 @@ namespace abollo
 using IntFloat6 = thrust::tuple<int, float, float, float, float, float, float>;
 using Float7    = thrust::tuple<float, float, float, float, float, float, float>;
 
-using DateIterator         = boost::circular_buffer<date::year_month_day>::const_iterator;
+using DateIterator         = thrust::host_vector<date::year_month_day>::const_iterator;
 using PriceIterator        = thrust::host_vector<Float7>::const_iterator;
 using DatePriceIterator    = thrust::tuple<DateIterator, PriceIterator>;
 using DatePriceZipIterator = thrust::zip_iterator<DatePriceIterator>;
 
 
 
-enum class DataType
+template <typename Tag>
+struct Price
 {
-    eIndex = 0,
+    using type = Tag;
 
-    eOpen  = 0x01,
-    eClose = 0x02,
-    eLow   = 0x04,
-    eHigh  = 0x08,
-
-    eVolume = 0x10,
-    eAmount = 0x11,
-
-    ePrice = eOpen | eClose | eLow | eHigh
+    float value;
 };
 
 
-
-struct Price
+template <>
+struct Price<date_tag>
 {
-    date::year_month_day date;
+    using type = date_tag;
 
-    union {
-        std::array<float, 6> data;
+    date::year_month_day value;
+};
 
-        struct
-        {
-            float open;
-            float close;
-            float low;
-            float high;
-            float volume;
-            float amount;
-        };
-    };
+
+template <typename... T>
+struct Prices;
+
+
+template <typename... Tags>
+struct Prices<TableSchema<Tags...>> : Price<Tags>...
+{
+    template <typename T, typename V>
+    auto& Set(V&& aValue)
+    {
+        Price<T>::value = std::forward<V>(aValue);
+
+        return *this;
+    }
+
+    template <typename T>
+    [[nodiscard]] auto Get() const
+    {
+        return Price<T>::value;
+    }
+
+    template <typename... Ts, typename = std::enable_if_t<(sizeof...(Ts) > 1u)>>
+    [[nodiscard]] auto Get() const
+    {
+        return std::make_tuple(Price<Ts>::value...);
+    }
 };
 
 
@@ -90,35 +99,6 @@ union PriceWithIndex {
 
 
 }    // namespace abollo
-
-
-
-namespace soci
-{
-
-
-
-template <>
-struct type_conversion<abollo::Price>
-{
-    using base_type = values;
-
-    static void from_base(const base_type& v, indicator /*ind*/, abollo::Price& price)
-    {
-        price.date = v.get<date::year_month_day>("date");
-
-        price.open   = static_cast<float>(v.get<double>("open"));
-        price.close  = static_cast<float>(v.get<double>("close"));
-        price.low    = static_cast<float>(v.get<double>("low"));
-        price.high   = static_cast<float>(v.get<double>("high"));
-        price.volume = static_cast<float>(v.get<double>("volume") / 1000000.f);
-        price.amount = static_cast<float>(v.get<double>("amount") / 1000000.f);
-    }
-};
-
-
-
-}    // namespace soci
 
 
 

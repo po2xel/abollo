@@ -33,4 +33,4 @@ public:
 
 
 
-#endif    // !__ABOLLO_UTILITY_SINGLETON_H__
+#endif    // __ABOLLO_UTILITY_SINGLETON_H__
