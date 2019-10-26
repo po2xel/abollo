@@ -39,28 +39,6 @@ using abollo::WindowEvent;
 
 int main(int /*argc*/, char* /*argv*/[])
 {
-    abollo::DeviceTable<float, 8, abollo::ColumnType::eOpen, abollo::ColumnType::eClose> lt{""};
-    thrust::host_vector<float> lh(5);
-    thrust::sequence(lh.begin(), lh.end());
-
-    lt.PushBack<abollo::ColumnType::eOpen>(lh.begin(), lh.end());
-    std::copy(lt.Begin<abollo::ColumnType::eOpen>(), lt.End<abollo::ColumnType::eOpen>(), std::ostream_iterator<float>(std::cout, "\t"));
-
-    std::cout << std::endl;
-
-    lt.PushBack<abollo::ColumnType::eOpen>(lh.begin(), lh.end());
-    std::copy(lt.Begin<abollo::ColumnType::eOpen>(), lt.End<abollo::ColumnType::eOpen>(), std::ostream_iterator<float>(std::cout, "\t"));
-
-    std::cout << std::endl;
-
-    lt.PushBack<abollo::ColumnType::eOpen>(lh.begin(), lh.end());
-    std::copy(lt.Begin<abollo::ColumnType::eOpen>(), lt.End<abollo::ColumnType::eOpen>(), std::ostream_iterator<float>(std::cout, "\t"));
-
-    std::cout << std::endl;
-
-    lt.PushBack<abollo::ColumnType::eOpen>(lh.begin(), lh.end());
-    std::copy(lt.Begin<abollo::ColumnType::eOpen>(), lt.End<abollo::ColumnType::eOpen>(), std::ostream_iterator<float>(std::cout, "\t"));
-
     auto& lApp = Application::Instance(SubSystem::eVideo);
     const Window lWindow{"Hello World", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768, SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN};
 

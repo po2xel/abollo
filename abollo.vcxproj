@@ -227,6 +227,7 @@
     <ClCompile Include="src\soci\core\values.cpp" />
     <ClCompile Include="src\Window\Application.cpp" />
     <CudaCompile Include="src\Market\Model\DataAnalyzerImpl.cu" />
+    <CudaCompile Include="test.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\Graphics\vk\Instance.h" />

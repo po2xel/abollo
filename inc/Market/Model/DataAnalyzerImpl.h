@@ -4,6 +4,7 @@
 
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 #include <date/date.h>
@@ -14,11 +15,128 @@
 #include <boost/circular_buffer.hpp>
 
 #include "Market/Model/Price.h"
+#include "Market/Model/Table.h"
 
 
 
 namespace abollo
 {
+
+
+
+template <typename T, const std::size_t P, ColumnType Y>
+using HostColumn = Column<thrust::host_vector<T>, P, Y>;
+
+
+template <typename T, const std::size_t Cap, ColumnType Y>
+using DeviceColumn = Column<thrust::device_vector<T>, Cap, Y>;
+
+
+
+template <typename T, const std::size_t P, ColumnType... Ys>
+class MarketingTable : private Column<thrust::host_vector<date::year_month_day>, 1 << P, ColumnType::eDate>, public Table<thrust::device_vector<T>, 1 << P, Ys...>
+{
+private:
+    constexpr static std::size_t CAPACITY      = 1 << P;
+    constexpr static std::size_t CAPACITY_MASK = CAPACITY - 1;
+
+    std::string mCode;
+
+    std::size_t mFirst{0};
+    std::size_t mLast{0};
+    std::size_t mSize{0};
+
+    [[nodiscard]] auto SpaceLeft() const
+    {
+        return mFirst <= mLast ? CAPACITY + mFirst - mLast : mFirst - mLast;
+    }
+
+    [[nodiscard]] auto Full() const
+    {
+        return CAPACITY == mSize;
+    }
+
+    void Forward(const std::size_t aSize)
+    {
+        if (mLast + aSize >= CAPACITY_MASK)
+            mLast = (mLast + aSize) & CAPACITY_MASK;
+        else
+            mLast += aSize;
+
+        mSize = std::min(mSize + aSize, CAPACITY);
+
+        if (Full())
+            mFirst = mLast;
+    }
+
+    void Backward(const std::size_t aSize)
+    {
+        if (mFirst >= aSize)
+            mFirst -= aSize;
+        else
+            mFirst = (mFirst + CAPACITY - aSize) & CAPACITY_MASK;
+
+        mSize = std::min(mSize + aSize, CAPACITY);
+
+        if (Full())
+            mLast = mFirst;
+    }
+
+public:
+    explicit MarketingTable(std::string aCode) noexcept : mCode{std::move(aCode)}
+    {
+    }
+
+    template <ColumnType Y>
+    auto begin() const
+    {
+        return DeviceColumn<T, CAPACITY, Y>::begin();
+    }
+
+    template <ColumnType Y>
+    auto end() const
+    {
+        return DeviceColumn<T, CAPACITY, Y>::end();
+    }
+
+    template <ColumnType Y, typename Iterator>
+    void Append(Iterator aBegin, Iterator aEnd)
+    {
+        const auto lDistance = std::distance(aBegin, aEnd);
+        assert(lDistance >= 0 && static_cast<std::size_t>(lDistance) <= CAPACITY);
+
+        using BaseType = std::conditional_t<ColumnType::eDate == Y, HostColumn<T, CAPACITY, Y>, DeviceColumn<T, CAPACITY, Y>>;
+
+        const auto lSize = std::min(CAPACITY - mLast, static_cast<std::size_t>(lDistance));
+        thrust::copy_n(aBegin, lSize, BaseType::begin() + mLast);
+
+        const auto lLeft = lDistance - lSize;
+
+        if (lLeft > 0)
+            thrust::copy_n(aBegin + lSize, lLeft, BaseType::begin());
+
+        Forward(lDistance);
+    }
+
+    template <ColumnType Y, typename Iterator>
+    void Prepend(Iterator aBegin, Iterator aEnd)
+    {
+        const auto lDistance = std::distance(aBegin, aEnd);
+        assert(lDistance >= 0 && static_cast<std::size_t>(lDistance) <= CAPACITY);
+
+        using BaseType = std::conditional_t<ColumnType::eDate == Y, HostColumn<T, CAPACITY, Y>, DeviceColumn<T, CAPACITY, Y>>;
+
+        const auto lSize = std::min(mFirst, static_cast<std::size_t>(lDistance));
+        thrust::copy_n(aEnd - lSize, lSize, BaseType::begin() + mFirst - lSize);
+
+        const auto lLeft = lDistance - lSize;
+
+        if (lLeft > 0)
+            thrust::copy_n(aBegin, lLeft, BaseType::end() - lLeft);
+
+        Backward(lDistance);
+    }
+};
 
 
 
@@ -61,8 +179,10 @@ private:
 
     std::size_t mPriceCount{0};
 
+    MarketingTable<float, 3, ColumnType::eOpen, ColumnType::eClose> mMarketingTable;
+
 public:
-    DataAnalyzerImpl() : mIndexDailyStmt(mSession.prepare << INDEX_DAILY_SQL)
+    DataAnalyzerImpl() : mIndexDailyStmt(mSession.prepare << INDEX_DAILY_SQL), mMarketingTable{""}
     {
     }
 

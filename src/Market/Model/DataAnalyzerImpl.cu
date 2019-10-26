@@ -8,6 +8,7 @@
 #include <thrust/functional.h>
 #include <thrust/host_vector.h>
 #include <thrust/iterator/zip_iterator.h>
+#include <thrust/sequence.h>
 #include <thrust/transform.h>
 #include <thrust/tuple.h>
 
@@ -21,6 +22,37 @@ void DataAnalyzerImpl::LoadIndex(const std::string& aCode, const date::year_mont
 {
     using soci::into;
     using soci::use;
+
+    // thrust::host_vector<float> lh(8);
+    // thrust::sequence(lh.begin(), lh.end());
+    // std::copy(lh.begin(), lh.end(), std::ostream_iterator<float>(std::cout, "\t"));
+    // std::cout << std::endl;
+    //
+    // for (auto i = 0; i < 10; ++i)
+    // {
+    //     thrust::sequence(lh.begin(), lh.end(), i * 10.f);
+    //
+    //     mMarketingTable.Append<abollo::ColumnType::eOpen>(lh.begin(), lh.begin() + 5);
+    //     std::copy(mMarketingTable.begin<abollo::ColumnType::eOpen>(), mMarketingTable.end<abollo::ColumnType::eOpen>(), std::ostream_iterator<float>(std::cout, "\t"));
+    //     // std::cout << "\nfirst = " << mMarketingTable.mFirst << "\t" << "last = " << lt.mLast << std::endl;
+    //
+    //     std::cout << std::endl;
+    // }
+    
+    // std::cout << std::endl;
+    //
+    // for (auto i = 0; i < 10; ++i)
+    // {
+    //     thrust::sequence(lh.begin(), lh.end(), i * 10.f);
+    //
+    //     mMarketingTable.Prepend<abollo::ColumnType::eOpen>(lh.begin(), lh.begin() + 5);
+    //     std::copy(mMarketingTable.begin<abollo::ColumnType::eOpen>(), mMarketingTable.end<abollo::ColumnType::eOpen>(), std::ostream_iterator<float>(std::cout, "\t"));
+    //     // std::cout << "\nfirst = " << lt.mFirst << "\t"
+    //               // << "last = " << lt.mLast << std::endl;
+    //
+    //     std::cout << std::endl;
+    // }
+
 
     Price lPrice{};
 

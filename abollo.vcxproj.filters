@@ -250,5 +250,8 @@
     <CudaCompile Include="src\Market\Model\DataAnalyzerImpl.cu">
       <Filter>Source Files\Market\Model</Filter>
     </CudaCompile>
+    <CudaCompile Include="test.cu">
+      <Filter>Source Files</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

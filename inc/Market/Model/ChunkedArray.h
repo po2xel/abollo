@@ -29,14 +29,14 @@ enum class ColumnType : uint8_t
 
 
 
-template <template <typename> class C, typename T, const std::size_t Cap, ColumnType Y>
+template <typename C, const std::size_t Size, ColumnType Y>
 class ChunkedArray
 {
 private:
-    C<T> mColumn;
+    C mColumn;
 
 public:
-    ChunkedArray() : mColumn(Cap)
+    ChunkedArray() : mColumn(Size)
     {
     }
 
