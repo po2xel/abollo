@@ -3,13 +3,13 @@
 
 
 
-#include <cmath>
 #include <memory>
 
 #include <skia/include/core/SkSurface.h>
 
 #include "Market/Model/DataAnalyzer.h"
 #include "Market/Painter.h"
+#include "Market/Painter/AxisPainter.h"
 
 
 
@@ -23,6 +23,10 @@ class MarketCanvas final
 private:
     SkMatrix mTransMatrix;
 
+    Axis<uint32_t, axis::Date> mXAxis;
+    Axis<SkScalar, axis::Price> mPriceAxis;
+    Axis<SkScalar, axis::Volume> mVolAxis;
+
     SkScalar mMousePosX{0.f};
     SkScalar mMousePosY{0.f};
 
@@ -30,13 +34,16 @@ private:
 
     uint32_t mStartIndex{0};
     uint32_t mSize{20};
-    float mCandleWidth{0.f};
-    float mScaleX{1.f};
-    float mTransX{0.f};
+    SkScalar mCandleWidth{0.f};
+    SkScalar mScaleX{1.f};
+    SkScalar mTransX{0.f};
 
     std::unique_ptr<Painter> mpMarketPainter;
+    std::unique_ptr<AxisPainter> mpAxisPainter;
 
     DataAnalyzer mDataAnalyzer;
+
+    void Reload(SkCanvas& aCanvas);
 
 public:
     MarketCanvas();

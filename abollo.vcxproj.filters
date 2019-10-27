@@ -58,6 +58,9 @@
     <Filter Include="Source Files\soci\backends\sqlite3">
       <UniqueIdentifier>{cc3197cc-252f-4b88-b812-a7dab3420dd9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Market\Painter">
+      <UniqueIdentifier>{fe79ceca-9e25-4d42-a1d5-c46f4cdb7ec3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\fmt\format.cc">
@@ -253,6 +256,9 @@
     </ClInclude>
     <ClInclude Include="inc\Market\Model\MarketDataFields.h">
       <Filter>Header Files\Market\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Market\Painter\AxisPainter.h">
+      <Filter>Header Files\Market\Painter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

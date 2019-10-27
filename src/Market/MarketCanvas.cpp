@@ -30,6 +30,7 @@ MarketCanvas::MarketCanvas()
     mDataAnalyzer.LoadIndex("000905.SH", lStartDate, lEndDate);
 
     mpMarketPainter = std::make_unique<Painter>();
+    mpAxisPainter = std::make_unique<AxisPainter>();
 }
 
 
@@ -67,11 +68,68 @@ std::pair<float, float> VolumeTrans(SkCanvas& aCanvas, const SkMatrix& aTransMat
 }
 
 
+void MarketCanvas::Reload(SkCanvas& aCanvas)
+{
+    SkAutoCanvasRestore lGuard(&aCanvas, true);
+
+    aCanvas.concat(mTransMatrix);
+
+    const auto lCanvasClipBounds = aCanvas.getDeviceClipBounds();
+
+    const auto lWidth  = static_cast<SkScalar>(lCanvasClipBounds.width());     // canvas width
+    const auto lHeight = static_cast<SkScalar>(lCanvasClipBounds.height());    // canvas height
+    const auto lRangeX = 20.f;                                                 // range in x axis is: [-Inf., rangeX]
+
+    const auto& lTransMatrix = aCanvas.getTotalMatrix();
+    const auto lScaleX       = lTransMatrix.getScaleX();
+    const auto lScaleY       = lTransMatrix.getScaleY();
+    const auto lTransX       = lTransMatrix.getTranslateX();
+    const auto lTransY       = lTransMatrix.getTranslateY();
+
+    mCandleWidth = lScaleX * lWidth / lRangeX;
+
+    mXAxis.scale = -lWidth * lScaleX / lRangeX;
+    mXAxis.trans = lScaleX * lWidth + lTransX;
+
+    const auto lStartIndex = std::lround((lWidth - mXAxis.trans) / mXAxis.scale);
+    if (lStartIndex >= 0 && static_cast<std::size_t>(lStartIndex) < mDataAnalyzer.Size())
+        mXAxis.min = static_cast<uint32_t>(lStartIndex);
+    else
+        mXAxis.min = 0;
+
+    if (const auto lCandlePosX = std::lround((mMousePosX - mXAxis.trans) / mXAxis.scale); lCandlePosX >= 0)
+        mSelectedCandle = static_cast<uint32_t>(lCandlePosX);
+    else
+        mSelectedCandle = 0;
+
+    const auto lEndIndex = static_cast<uint32_t>(std::ceil(lWidth / mCandleWidth + 1.f + lStartIndex));
+
+    if (lEndIndex <= mDataAnalyzer.Size())
+        mXAxis.max = lEndIndex;
+    else
+        mXAxis.max = static_cast<uint32_t>(mDataAnalyzer.Size());
+
+    const auto [lLow, lHigh] = mDataAnalyzer.MinMax(mXAxis.min, mXAxis.stride(), column_v<log_price_tag>);    // range in y axis is: [low boundary, high boundary]
+    mPriceAxis.min           = lLow;
+    mPriceAxis.max           = lHigh;
+    mPriceAxis.scale         = lScaleY * lHeight / (lLow - lHigh);
+    mPriceAxis.trans         = lScaleY * (lLow * lHeight / (lHigh - lLow) + lHeight) + lTransY;
+
+    const auto [lMin, lMax] = mDataAnalyzer.MinMax(mXAxis.min, mXAxis.stride(), column_v<log_volume_tag>);
+    mVolAxis.min            = lMin;
+    mVolAxis.max            = lMax;
+    mVolAxis.scale          = lScaleY * lHeight / (lMin - lMax);
+    mVolAxis.trans          = lScaleY * (lMin * lHeight / (lMax - lMin) + lHeight) + lTransY;
+}
+
+
 void MarketCanvas::Paint(SkSurface* apSurface)
 {
     auto& lCanvas = *(apSurface->getCanvas());
 
     lCanvas.clear(SK_ColorDKGRAY);
+
+    Reload(lCanvas);
 
     SkAutoCanvasRestore lGuard(&lCanvas, true);
 
@@ -111,7 +169,7 @@ void MarketCanvas::Paint(SkSurface* apSurface)
     // std::cout << "start index: " << mStartIndex << "\tsize: " << mSize << "\tselected: " << mSelectedCandle << std::endl;
 
     // auto [lLow, lHigh] = mDataAnalyzer.MinMax(mStartIndex, mSize, column_v<price_tag>); // range in y axis is: [low boundary, high boundary]
-    auto [lLow, lHigh] = mDataAnalyzer.MinMax(mStartIndex, mSize, column_v<log_price_tag>); // range in y axis is: [low boundary, high boundary]
+    auto [lLow, lHigh] = mDataAnalyzer.MinMax(mStartIndex, mSize, column_v<log_price_tag>);    // range in y axis is: [low boundary, high boundary]
     auto [lMin, lMax]  = mDataAnalyzer.MinMax(mStartIndex, mSize, column_v<log_volume_tag>);
 
     /** Calculate coordinate system transformation matrix:
@@ -151,8 +209,9 @@ void MarketCanvas::Paint(SkSurface* apSurface)
     const auto lCount      = static_cast<uint32_t>(std::ceil(height / lYDelta));
 
     mpMarketPainter->DrawCandle(lCanvas, lTransPrices, mCandleWidth);
-    mpMarketPainter->DrawPriceAxis(lCanvas, width, lLow, lHigh, lCount, lScaleY, lTransY);
-    mpMarketPainter->DrawVolumeAxis(lCanvas, 0.f, lMin, lMax, lCount, lScaleZ, lTransZ);
+
+    mpAxisPainter->Draw<axis::Right>(lCanvas, mPriceAxis, lCount);
+    mpAxisPainter->Draw<axis::Left>(lCanvas, mVolAxis, lCount);
 
     assert(mSelectedCandle >= mStartIndex);
 

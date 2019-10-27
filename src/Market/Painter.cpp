@@ -49,11 +49,6 @@ Painter::Painter()
 
     mDateLabelWidth = mAxisLabelFont.measureText(DEFAULT_DATE_FORMAT.data(), DEFAULT_DATE_FORMAT.size(), SkTextEncoding::kUTF8, nullptr);
     mDateLabelSpace = mDateLabelWidth * 1.5f;
-
-    SkRect lPriceLabelBound{};
-    mPriceLabelWidth  = mAxisLabelFont.measureText(DEFAULT_PRICE_FORMAT.data(), DEFAULT_PRICE_FORMAT.size(), SkTextEncoding::kUTF8, &lPriceLabelBound);
-    mPriceLabelHeight = lPriceLabelBound.height();
-    mPriceLabelSpace  = mPriceLabelHeight + mPriceLabelHeight;
 }
 
 
@@ -65,59 +60,6 @@ SkScalar Painter::DrawDateAxis(SkCanvas& aCanvas, const SkScalar aCoordX, const 
     aCanvas.drawString(lDateLabel.data(), lCoordX, aCoordY, mAxisLabelFont, mAxisPaint);
 
     return lCoordX;
-}
-
-
-void Painter::DrawPriceAxis(SkCanvas& aCanvas, const SkScalar aCoordX, const SkScalar aLow, const SkScalar aHigh, const uint32_t aCount, const SkScalar aScaleY,
-                            const SkScalar aTransY) const
-{
-    const auto lPriceDelta = (aHigh - aLow) / aCount;
-    const auto lCoordX     = aCoordX - mPriceLabelWidth;
-
-    // auto lPrePosY = std::numeric_limits<float>::max();
-
-    auto lPrice = aLow;
-
-    for (uint32_t lIndex = 0; lIndex <= aCount; ++lIndex, lPrice += lPriceDelta)
-    {
-        // const auto lPrice  = aLow + lIndex * lPriceDelta;
-        const auto lCoordY = lPrice * aScaleY + aTransY;
-
-        // if (lPrePosY - lCoordY < mPriceLabelSpace)
-        // continue;
-
-        const auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, std::expf(lPrice));
-
-        aCanvas.drawString(lPriceLabel.data(), lCoordX, lCoordY, mAxisLabelFont, mAxisPaint);
-
-        // lPrePosY = lCoordY;
-    }
-}
-
-
-void Painter::DrawVolumeAxis(SkCanvas& aCanvas, const SkScalar aCoordX, const SkScalar aMin, const SkScalar aMax, const uint32_t aCount, const SkScalar aScaleY,
-                             const SkScalar aTransY) const
-{
-    const auto lVolumeDelta = (aMax - aMin) / aCount;
-
-    // auto lPrePosY = std::numeric_limits<float>::max();
-
-    auto lVolume = aMin;
-
-    for (uint32_t lIndex = 0; lIndex <= aCount; ++lIndex, lVolume += lVolumeDelta)
-    {
-        // const auto lVolume = aMin + lIndex * lVolumeDelta;
-        const auto lCoordY = lVolume * aScaleY + aTransY;
-
-        // if (lPrePosY - lCoordY < mPriceLabelSpace)
-        // continue;
-
-        const auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, std::expf(lVolume));
-
-        aCanvas.drawString(lPriceLabel.data(), aCoordX, lCoordY, mAxisLabelFont, mAxisPaint);
-
-        // lPrePosY = lCoordY;
-    }
 }
 
 
@@ -145,7 +87,9 @@ void Painter::Highlight(SkCanvas& aCanvas, const MarketDataFields& aSelectedCand
 
     aCanvas.drawRect(lCandleRect, mCandlePaint);
 
-    const auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, aSelectedCandle.volume);
+    constexpr static std::string_view DEFAULT_LABEL_FORMAT_STR = "{:>8.2f}";
+
+    const auto lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, aSelectedCandle.volume);
 
     aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.volume, mAxisLabelFont, mAxisPaint);
 
