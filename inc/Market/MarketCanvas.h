@@ -25,18 +25,13 @@ private:
 
     Axis<uint32_t, axis::Date> mXAxis;
     Axis<SkScalar, axis::Price> mPriceAxis;
-    Axis<SkScalar, axis::Volume> mVolAxis;
+    Axis<SkScalar, axis::Volume> mVolumeAxis;
 
     SkScalar mMousePosX{0.f};
     SkScalar mMousePosY{0.f};
 
-    uint32_t mSelectedCandle{0};
-
-    uint32_t mStartIndex{0};
-    uint32_t mSize{20};
     SkScalar mCandleWidth{0.f};
-    SkScalar mScaleX{1.f};
-    SkScalar mTransX{0.f};
+    uint32_t mSelectedCandle{0};
 
     std::unique_ptr<Painter> mpMarketPainter;
     std::unique_ptr<AxisPainter> mpAxisPainter;

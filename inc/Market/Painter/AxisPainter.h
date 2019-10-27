@@ -97,13 +97,24 @@ public:
     }
 
     template <typename Pos, typename T, typename Tag>
-    void Draw(SkCanvas& aCanvas, const Axis<T, Tag>& aAxis, const uint32_t aCount) const
+    void Draw(SkCanvas& aCanvas, const Axis<T, Tag>& aAxis) const
     {
         const auto lCanvasClipBounds = aCanvas.getDeviceClipBounds();
         const auto lCanvasWidth  = static_cast<SkScalar>(lCanvasClipBounds.width());     // canvas width
         const auto lCanvasHeight = static_cast<SkScalar>(lCanvasClipBounds.height());    // canvas height
 
-        const auto lStep = aAxis.stride() / aCount;
+        uint32_t lCount{0};
+
+        if constexpr (std::is_same_v<Pos, axis::Right> || std::is_same_v<Pos, axis::Left>)
+            lCount = static_cast<uint32_t>(lCanvasHeight / (mLabelHeight * 5.f));
+        else if constexpr (std::is_same_v<Pos, axis::Top> || std::is_same_v<Pos, axis::Bottom>)
+            lCount = static_cast<uint32_t>(lCanvasWidth / (mLabelWidth * 1.5f));
+        else
+        {
+            static_assert(false, "Axis position is not supported.");
+        }
+
+        const auto lStep = aAxis.stride() / lCount;
         SkScalar lCoordX{0.f};
         SkScalar lCoordY{0.f};
 
