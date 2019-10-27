@@ -15,12 +15,12 @@ namespace abollo
 {
 
 
-template <typename T, const std::size_t P, typename Tag>
-using HostColumn = Column<thrust::host_vector<T>, P, Tag>;
+template <typename T, const std::size_t Cap, typename Tag>
+using HostColumn = Column<thrust::host_vector<T>, Cap, Tag>;
 
 
 
-template <typename T, const std::size_t P, typename... Tags>
+template <typename T, const uint8_t P, typename... Tags>
 class PagedMarketingTable : private HostColumn<date::year_month_day, 1 << P, date_tag>, public Table<thrust::host_vector<T>, 1 << P, Tags...>
 {
 public:

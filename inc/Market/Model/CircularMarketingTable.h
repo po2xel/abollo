@@ -21,7 +21,7 @@ using DeviceColumn = Column<thrust::device_vector<T>, Cap, Tag>;
 
 
 
-template <typename T, const std::size_t P, typename... Tags>
+template <typename T, const uint8_t P, typename... Tags>
 class CircularMarketingTable : private Column<thrust::host_vector<date::year_month_day>, 1 << P, date_tag>, public Table<thrust::device_vector<T>, 1 << P, Tags...>
 {
 public:
@@ -32,8 +32,6 @@ private:
 
     constexpr static std::size_t CAPACITY      = 1 << P;
     constexpr static std::size_t CAPACITY_MASK = CAPACITY - 1;
-
-    std::string mCode;
 
     std::size_t mFirst{0};
     std::size_t mLast{0};
@@ -118,7 +116,7 @@ private:
             push_back(std::forward<U>(aValue), table_schema_v<Ts...>);
     }
 
-    template<typename V, typename... Ts, typename U>
+    template <typename V, typename... Ts, typename U>
     void push_front(U&& aValue, TableSchema<V, Ts...>)
     {
         Prepend<V>(aValue.template begin<V>(), aValue.template end<V>());
@@ -128,12 +126,8 @@ private:
     }
 
 public:
-    explicit CircularMarketingTable(std::string aCode) noexcept : mCode{std::move(aCode)}
-    {
-    }
-
     template <typename Tag>
-    auto begin() const
+    [[nodiscard]] auto begin() const
     {
         using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, DeviceColumn<T, CAPACITY, Tag>>;
 
@@ -141,7 +135,7 @@ public:
     }
 
     template <typename Tag>
-    auto end() const
+    [[nodiscard]] auto end() const
     {
         using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, DeviceColumn<T, CAPACITY, Tag>>;
 
@@ -155,11 +149,24 @@ public:
         Forward(aValue.size());
     }
 
-    template<typename U>
+    template <typename U>
     void push_front(U&& aValue)
     {
         push_front(std::forward<U>(aValue), table_schema_v<date_tag, Tags...>);
         Backward(aValue.size());
+    }
+
+    [[nodiscard]] std::size_t size() const
+    {
+        return mSize;
+    }
+
+    template <typename Tag>
+    [[nodiscard]] auto at(const std::size_t aIndex) const
+    {
+        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, DeviceColumn<T, CAPACITY, Tag>>;
+
+        return BaseType::operator[](aIndex);
     }
 };
 

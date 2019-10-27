@@ -7,7 +7,6 @@
 #include <skia/include/effects/SkDashPathEffect.h>
 
 #include "Market/Model/DataAnalyzer.h"
-#include "Market/Model/Column.h"
 
 
 
@@ -87,7 +86,7 @@ void Painter::DrawPriceAxis(SkCanvas& aCanvas, const SkScalar aCoordX, const SkS
         // if (lPrePosY - lCoordY < mPriceLabelSpace)
         // continue;
 
-        auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, lPrice);
+        const auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, std::expf(lPrice));
 
         aCanvas.drawString(lPriceLabel.data(), lCoordX, lCoordY, mAxisLabelFont, mAxisPaint);
 
@@ -113,7 +112,7 @@ void Painter::DrawVolumeAxis(SkCanvas& aCanvas, const SkScalar aCoordX, const Sk
         // if (lPrePosY - lCoordY < mPriceLabelSpace)
         // continue;
 
-        auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, lVolume);
+        const auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, std::expf(lVolume));
 
         aCanvas.drawString(lPriceLabel.data(), aCoordX, lCoordY, mAxisLabelFont, mAxisPaint);
 
@@ -122,7 +121,7 @@ void Painter::DrawVolumeAxis(SkCanvas& aCanvas, const SkScalar aCoordX, const Sk
 }
 
 
-void Painter::Highlight(SkCanvas& aCanvas, const PriceWithIndex& aSelectedCandle, const SkScalar aCandleWidth)
+void Painter::Highlight(SkCanvas& aCanvas, const MarketDataFields& aSelectedCandle, const SkScalar aCandleWidth)
 {
     SkPaint paint;
     paint.setAntiAlias(true);
@@ -146,7 +145,7 @@ void Painter::Highlight(SkCanvas& aCanvas, const PriceWithIndex& aSelectedCandle
 
     aCanvas.drawRect(lCandleRect, mCandlePaint);
 
-    auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, aSelectedCandle.volume);
+    const auto lPriceLabel = fmt::format(DEFAULT_PRICE_FORMAT_STR, aSelectedCandle.volume);
 
     aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.volume, mAxisLabelFont, mAxisPaint);
 
@@ -175,22 +174,20 @@ void Painter::DrawCandle(SkCanvas& aCanvas, const std::pair<DatePriceZipIterator
     SkPath lVolumePath;
 
     {
-        const auto& lTransPrice = thrust::get<1>(*lBegin);
-        const auto& lPrice      = *(reinterpret_cast<const PriceWithIndex*>(&lTransPrice));
-        const auto lCoordX      = lPrice.index;
+        const auto& lPrice = thrust::get<1>(*lBegin);    // *(reinterpret_cast<const PriceWithIndex*>(&lTransPrice));
+        const auto lCoordX = lPrice.index;
 
         lVolumePath.moveTo(lCoordX, lPrice.volume);
     }
 
     for (const auto lEnd = lData.second; lBegin != lEnd; ++lBegin)
     {
-        const auto& lDate       = thrust::get<0>(*lBegin);
-        const auto& lTransPrice = thrust::get<1>(*lBegin);
-        const auto& lPrice      = *(reinterpret_cast<const PriceWithIndex*>(&lTransPrice));
-        const auto lCoordX      = lPrice.index;
+        const auto& lDate   = thrust::get<0>(*lBegin);
+        const auto& lFields = thrust::get<1>(*lBegin);    //*(reinterpret_cast<const PriceWithIndex*>(&lTransPrice));
+        const auto lCoordX  = lFields.index;
 
         // Draw volume curve
-        lVolumePath.lineTo(lPrice.index, lPrice.volume);
+        lVolumePath.lineTo(lFields.index, lFields.volume);
 
         // Draw date label
         if (lPrevCoordX - lCoordX >= mDateLabelSpace)
@@ -199,12 +196,12 @@ void Painter::DrawCandle(SkCanvas& aCanvas, const std::pair<DatePriceZipIterator
         // Draw candle stick
         {
             // Draw candle shadow
-            const auto lLow  = lPrice.low;
-            const auto lHigh = lPrice.high;
+            const auto lLow  = lFields.low;
+            const auto lHigh = lFields.high;
 
             // The transformed price is in the window coordinate system and the Y axis points down in the window coordinate system,
             // so the comparison is inverted.
-            if (lPrice.open > lPrice.close)
+            if (lFields.open > lFields.close)
             {
                 lCandleColor = DEFAULT_UPPER_COLOR;
 
@@ -220,7 +217,7 @@ void Painter::DrawCandle(SkCanvas& aCanvas, const std::pair<DatePriceZipIterator
             }
 
             // Draw candle body
-            const SkPoint lCandlePts[]{{lCoordX - lHalfWidth, lPrice.open}, {lCoordX + lHalfWidth, lPrice.close}};
+            const SkPoint lCandlePts[]{{lCoordX - lHalfWidth, lFields.open}, {lCoordX + lHalfWidth, lFields.close}};
             SkRect lCandleRect{};
             lCandleRect.set(lCandlePts[0], lCandlePts[1]);
 

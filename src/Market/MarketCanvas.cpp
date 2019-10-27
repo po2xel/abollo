@@ -11,7 +11,6 @@
 #include <skia/include/core/SkPath.h>
 #include <skia/include/core/SkTextBlob.h>
 
-#include "Market/Model/Column.h"
 #include "Market/Model/ColumnTraits.h"
 #include "Market/Model/DataAnalyzer.h"
 
@@ -109,8 +108,11 @@ void MarketCanvas::Paint(SkSurface* apSurface)
     if (lSize <= mDataAnalyzer.Size())
         mSize = lSize;
 
-    auto [lLow, lHigh, lMin, lMax] = mDataAnalyzer.MinMax(mStartIndex, mSize);    // range in y axis is: [low boundary, high boundary]
-    auto [lLow1, lHigh1]           = mDataAnalyzer.MinMax(mStartIndex, mSize, column_v<price_tag>);
+    // std::cout << "start index: " << mStartIndex << "\tsize: " << mSize << "\tselected: " << mSelectedCandle << std::endl;
+
+    // auto [lLow, lHigh] = mDataAnalyzer.MinMax(mStartIndex, mSize, column_v<price_tag>); // range in y axis is: [low boundary, high boundary]
+    auto [lLow, lHigh] = mDataAnalyzer.MinMax(mStartIndex, mSize, column_v<log_price_tag>); // range in y axis is: [low boundary, high boundary]
+    auto [lMin, lMax]  = mDataAnalyzer.MinMax(mStartIndex, mSize, column_v<log_volume_tag>);
 
     /** Calculate coordinate system transformation matrix:
      * 1. calculate y coordinate in the top-left origin system:
@@ -141,7 +143,7 @@ void MarketCanvas::Paint(SkSurface* apSurface)
     const auto& lVolMat           = SkMatrix::MakeAll(width / lRangeX, 0.f, 0.f, 0.f, height / (lMin - lMax), lMin * height / (lMax - lMin) + height, 0.f, 0.f, 1.f);
     const auto [lScaleZ, lTransZ] = VolumeTrans(lCanvas, lVolMat);
 
-    const auto& lTransPrices = mDataAnalyzer.Saxpy(mStartIndex, mSize, lScaleX, lTransX, lScaleY, lTransY, lScaleZ, lTransZ);
+    const auto& lTransPrices = mDataAnalyzer.LogSaxpy(mStartIndex, mSize, lScaleX, lTransX, lScaleY, lTransY, lScaleZ, lTransZ);
 
     lCanvas.resetMatrix();
 

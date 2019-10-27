@@ -3,18 +3,16 @@
 
 
 
-#include <functional>
 #include <memory>
 #include <string>
-#include <tuple>
 #include <utility>
 
 #include <date/date.h>
 
 #include "Market/Model/ColumnTraits.h"
-#include "Market/Model/Column.h"
-#include "Market/Model/PagedMarketingTable.h"
 #include "Market/Model/DataLoader.h"
+#include "Market/Model/MarketDataFields.h"
+#include "Market/Model/PagedMarketingTable.h"
 
 
 
@@ -23,21 +21,27 @@ namespace abollo
 
 
 
-template <typename... Tags>
+template <const uint8_t P, typename Tags>
 class DataAnalyzerImpl;
 
 
 
 class DataAnalyzer final
 {
+private:
+    constexpr static uint8_t DEFAULT_BUFFER_COL_POWER    = 10;
+    constexpr static std::size_t DEFAULT_BUFFER_COL_SIZE = 1 << DEFAULT_BUFFER_COL_POWER;
+
 public:
-    using PagedTableType = PagedMarketingTable<float, 10, open_tag, close_tag, low_tag, high_tag, volume_tag, amount_tag>;
+    using PagedTableType = PagedMarketingTable<float, DEFAULT_BUFFER_COL_POWER, open_tag, close_tag, low_tag, high_tag, volume_tag, amount_tag>;
+    using DataSchema     = PagedTableType::Schema;
+    using ImplType       = DataAnalyzerImpl<DEFAULT_BUFFER_COL_POWER, PagedTableType::Schema>;
 
 private:
     PagedTableType mPagedTable;
     DataLoader mDataLoader;
 
-    std::unique_ptr<DataAnalyzerImpl<PagedTableType::Schema>> mImpl;
+    std::unique_ptr<ImplType> mImpl;
 
 public:
     DataAnalyzer();
@@ -48,11 +52,17 @@ public:
     [[nodiscard]] std::pair<DatePriceZipIterator, DatePriceZipIterator> Saxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
                                                                               const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const;
 
-    [[nodiscard]] PriceWithIndex operator[](const std::size_t aIndex) const;
+    [[nodiscard]] std::pair<DatePriceZipIterator, DatePriceZipIterator> LogSaxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
+                                                                                 const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const;
+
+    [[nodiscard]] MarketDataFields operator[](const std::size_t aIndex) const;
     [[nodiscard]] std::size_t Size() const;
 
-    [[nodiscard]] std::tuple<float, float, float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize) const;
-    [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize, const ColumnTraits<price_tag> aTag) const;
+    [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize, ColumnTraits<price_tag>) const;
+    [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize, ColumnTraits<log_price_tag>) const;
+
+    [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize, ColumnTraits<volume_tag>) const;
+    [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize, ColumnTraits<log_volume_tag>) const;
 };
 
 

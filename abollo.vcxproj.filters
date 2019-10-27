@@ -251,7 +251,7 @@
     <ClInclude Include="inc\Market\Model\DataLoader.h">
       <Filter>Header Files\Market\Model</Filter>
     </ClInclude>
-    <ClInclude Include="inc\Market\Model\Column.h">
+    <ClInclude Include="inc\Market\Model\MarketDataFields.h">
       <Filter>Header Files\Market\Model</Filter>
     </ClInclude>
   </ItemGroup>
@@ -259,10 +259,5 @@
     <CudaCompile Include="src\Market\Model\DataAnalyzer.cpp">
       <Filter>Source Files\Market\Model</Filter>
     </CudaCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="inc\Market\Model\DataAnalyzerImpl.inl">
-      <Filter>Header Files\Market\Model</Filter>
-    </None>
   </ItemGroup>
 </Project>

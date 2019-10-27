@@ -20,6 +20,8 @@ struct volume_tag;
 struct amount_tag;
 
 struct price_tag;
+struct log_price_tag;
+struct log_volume_tag;
 
 
 template <typename Tag>

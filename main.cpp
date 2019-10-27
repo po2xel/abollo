@@ -82,6 +82,8 @@ int main(int /*argc*/, char* /*argv*/[])
 
         if ((aMask & MouseMask::eLeft) == MouseMask::eLeft)
             lMarketCanvas.MoveTo(static_cast<SkScalar>(aPosRelX), static_cast<SkScalar>(aPosRelY));
+        // else
+            // return;
 
         auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
 

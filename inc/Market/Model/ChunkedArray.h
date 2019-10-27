@@ -17,8 +17,10 @@ template <typename C, const std::size_t Size, typename Tag>
 class ChunkedArray
 {
 public:
-    using iterator       = typename C::iterator;
-    using const_iterator = typename C::const_iterator;
+    using iterator        = typename C::iterator;
+    using const_iterator  = typename C::const_iterator;
+    using reference       = typename C::reference;
+    using const_reference = typename C::const_reference;
 
 private:
     C mColumn;
@@ -28,42 +30,42 @@ public:
     {
     }
 
-    auto begin() noexcept
+    [[nodiscard]] auto begin() noexcept
     {
         return mColumn.begin();
     }
 
-    auto begin() const noexcept
+    [[nodiscard]] auto begin() const noexcept
     {
         return mColumn.begin();
     }
 
-    auto cbegin() const noexcept
+    [[nodiscard]] auto cbegin() const noexcept
     {
         return mColumn.cbegin();
     }
 
-    auto end() noexcept
+    [[nodiscard]] auto end() noexcept
     {
         return mColumn.end();
     }
 
-    auto end() const noexcept
+    [[nodiscard]] auto end() const noexcept
     {
         return mColumn.end();
     }
 
-    auto cend() const noexcept
+    [[nodiscard]] auto cend() const noexcept
     {
         return mColumn.cend();
     }
 
-    auto& operator[](const std::size_t aIndex)
+    reference operator[](const std::size_t aIndex)
     {
         return mColumn[aIndex];
     }
 
-    auto& operator[](const std::size_t aIndex) const
+    const_reference operator[](const std::size_t aIndex) const
     {
         return mColumn[aIndex];
     }
