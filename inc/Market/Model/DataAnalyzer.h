@@ -8,7 +8,6 @@
 #include <utility>
 
 #include <date/date.h>
-#include <thrust/uninitialized_copy.h>
 
 #include "Market/Model/ColumnTraits.h"
 #include "Market/Model/DataLoader.h"
