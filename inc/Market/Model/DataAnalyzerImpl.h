@@ -10,7 +10,6 @@
 
 #include "Market/Model/CircularMarketingTable.h"
 #include "Market/Model/ColumnTraits.h"
-#include "Market/Model/MarketDataFields.h"
 
 
 
@@ -19,25 +18,25 @@ namespace abollo
 
 
 
-template <const uint8_t P, typename Tags>
+template <const uint8_t P, typename F, typename Tags>
 class DataAnalyzerImpl;
 
 
 
-template <const uint8_t P, typename... Tags>
-class DataAnalyzerImpl<P, TableSchema<Tags...>> final
+template <const uint8_t P, typename F, typename... Tags>
+class DataAnalyzerImpl<P, F, TableSchema<Tags...>> final
 {
 private:
     constexpr static std::size_t DEFAULT_BUFFER_COL_SIZE{1 << P};
 
     CircularMarketingTable<float, P, Tags...> mMarketingTable;
 
-    mutable thrust::device_vector<MarketDataFields> mDeviceTempBuffer{DEFAULT_BUFFER_COL_SIZE};
-    mutable thrust::host_vector<MarketDataFields> mHostTempBuffer{DEFAULT_BUFFER_COL_SIZE};
+    mutable thrust::device_vector<F> mDeviceTempBuffer{DEFAULT_BUFFER_COL_SIZE};
+    mutable thrust::host_vector<F> mHostTempBuffer{DEFAULT_BUFFER_COL_SIZE};
 
 public:
     template <typename Iterator, typename Op>
-    [[nodiscard]] const auto& Saxpy(Iterator aBeginIter, Iterator aEndIter, Op&& aSaxpyOp) const
+    [[nodiscard]] const auto& Transform(Iterator aBeginIter, Iterator aEndIter, Op&& aSaxpyOp) const
     {
         const auto lSize = thrust::distance(aBeginIter, aEndIter);
 

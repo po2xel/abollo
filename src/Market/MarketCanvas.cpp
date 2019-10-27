@@ -173,8 +173,9 @@ void MarketCanvas::Paint(SkSurface* apSurface)
 
     assert(mSelectedCandle >= mXAxis.min);
 
-    const auto& lSelectedCandle = mDataAnalyzer[mSelectedCandle - mXAxis.min];
-    mpMarketPainter->Highlight(lCanvas, lSelectedCandle, mCandleWidth);
+    const auto& lSelectedCandle = mDataAnalyzer.Get(mSelectedCandle - mXAxis.min);
+    const auto& lCandleData = mDataAnalyzer[mSelectedCandle - mXAxis.min];
+    mpMarketPainter->Highlight(lCanvas, lSelectedCandle, lCandleData, mCandleWidth);
 }
 
 

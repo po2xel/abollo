@@ -42,7 +42,7 @@ public:
     Painter();
     virtual ~Painter() = default;
 
-    void Highlight(SkCanvas& aCanvas, const MarketDataFields& aSelectedCandle, const SkScalar aCandleWidth);
+    void Highlight(SkCanvas& aCanvas, const MarketDataFields& aSelectedCandle, const MarketDataFields& aCandleData, const SkScalar aCandleWidth);
 
     void DrawCandle(SkCanvas& aCanvas, const std::pair<DatePriceZipIterator, DatePriceZipIterator>& lData, const SkScalar aCandleWidth);
 };

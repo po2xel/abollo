@@ -33,6 +33,24 @@ struct MarketDataFields
     __host__ __device__ MarketDataFields(float i, float o, float c, float l, float h, float v, float a) : index{i}, open{o}, close{c}, low{l}, high{h}, volume{v}, amount{a}
     {
     }
+
+    __host__ __device__ MarketDataFields(const thrust::tuple<float, float, float, float, float, float, float>& aData)
+        : index{aData.get<0>()}, open{aData.get<1>()}, close{aData.get<2>()}, low{aData.get<3>()}, high{aData.get<4>()}, volume{aData.get<5>()}, amount{aData.get<6>()}
+    {
+    }
+
+    __host__ __device__ auto& operator=(const thrust::tuple<float, float, float, float, float, float, float>& aData)
+    {
+        index  = aData.get<0>();
+        open   = aData.get<1>();
+        close  = aData.get<2>();
+        low    = aData.get<3>();
+        high   = aData.get<4>();
+        volume = aData.get<5>();
+        amount = aData.get<6>();
+
+        return *this;
+    }
 };
 
 

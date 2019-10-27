@@ -63,7 +63,7 @@ SkScalar Painter::DrawDateAxis(SkCanvas& aCanvas, const SkScalar aCoordX, const 
 }
 
 
-void Painter::Highlight(SkCanvas& aCanvas, const MarketDataFields& aSelectedCandle, const SkScalar aCandleWidth)
+void Painter::Highlight(SkCanvas& aCanvas, const MarketDataFields& aSelectedCandle, const MarketDataFields& aCandleData, const SkScalar aCandleWidth)
 {
     SkPaint paint;
     paint.setAntiAlias(true);
@@ -88,16 +88,23 @@ void Painter::Highlight(SkCanvas& aCanvas, const MarketDataFields& aSelectedCand
     aCanvas.drawRect(lCandleRect, mCandlePaint);
 
     constexpr static std::string_view DEFAULT_LABEL_FORMAT_STR = "{:>8.2f}";
-
-    const auto lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, aSelectedCandle.volume);
+    auto lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, aCandleData.volume);
 
     aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.volume, mAxisLabelFont, mAxisPaint);
 
-    // aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.open, mAxisLabelFont, mAxisPaint);
-    // aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.close, mAxisLabelFont, mAxisPaint);
-    // aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.low, mAxisLabelFont, mAxisPaint);
-    // aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.high, mAxisLabelFont, mAxisPaint);
+    /*lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, aCandleData.open);
+    aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.open, mAxisLabelFont, mAxisPaint);
+
+    lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, aCandleData.close);
+    aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.close, mAxisLabelFont, mAxisPaint);
+
+    lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, aCandleData.low);
+    aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.low, mAxisLabelFont, mAxisPaint);
+
+    lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, aCandleData.high);
+    aCanvas.drawString(lPriceLabel.data(), aSelectedCandle.index, aSelectedCandle.high, mAxisLabelFont, mAxisPaint);*/
 }
+
 
 void Painter::DrawCandle(SkCanvas& aCanvas, const std::pair<DatePriceZipIterator, DatePriceZipIterator>& lData, const SkScalar aCandleWidth)
 {

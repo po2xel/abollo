@@ -8,6 +8,7 @@
 #include <utility>
 
 #include <date/date.h>
+#include <thrust/uninitialized_copy.h>
 
 #include "Market/Model/ColumnTraits.h"
 #include "Market/Model/DataLoader.h"
@@ -21,7 +22,7 @@ namespace abollo
 
 
 
-template <const uint8_t P, typename Tags>
+template <const uint8_t P, typename F, typename Tags>
 class DataAnalyzerImpl;
 
 
@@ -35,11 +36,40 @@ private:
 public:
     using PagedTableType = PagedMarketingTable<float, DEFAULT_BUFFER_COL_POWER, open_tag, close_tag, low_tag, high_tag, volume_tag, amount_tag>;
     using DataSchema     = PagedTableType::Schema;
-    using ImplType       = DataAnalyzerImpl<DEFAULT_BUFFER_COL_POWER, PagedTableType::Schema>;
+    using ImplType       = DataAnalyzerImpl<DEFAULT_BUFFER_COL_POWER, MarketDataFields, PagedTableType::Schema>;
 
 private:
+    class Cache
+    {
+    private:
+        std::size_t mOffset{0};
+
+        thrust::host_vector<MarketDataFields> mBuffer;
+
+    public:
+        template <typename Iterator>
+        void Assign(Iterator aBegin, Iterator aEnd, const std::size_t aOffset)
+        {
+            mBuffer.assign(aBegin, aEnd);
+            mOffset = aOffset;
+        }
+
+        [[nodiscard]] bool Contains(const std::size_t aIndex) const
+        {
+            return mOffset <= aIndex && aIndex < (mOffset + mBuffer.size());
+        }
+
+        [[nodiscard]] auto& operator[](const std::size_t aIndex) const
+        {
+            assert(Contains(aIndex));
+
+            return mBuffer[aIndex - mOffset];
+        }
+    };
+
     PagedTableType mPagedTable;
     DataLoader mDataLoader;
+    mutable Cache mMarketingDataCache;
 
     std::unique_ptr<ImplType> mImpl;
 
@@ -56,6 +86,7 @@ public:
                                                                                  const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const;
 
     [[nodiscard]] MarketDataFields operator[](const std::size_t aIndex) const;
+    [[nodiscard]] MarketDataFields Get(const std::size_t aIndex) const;
     [[nodiscard]] std::size_t Size() const;
 
     [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize, ColumnTraits<price_tag>) const;

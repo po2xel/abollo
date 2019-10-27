@@ -152,7 +152,7 @@ std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy(const 
                                                                lData.begin<amount_tag>() + lEndIndex     // amount
                                                                ));
 
-    const auto& lResult = mImpl->Saxpy(lBeginIter, lEndIter, [sx = aScaleX, tx = aTransX, sy = aScaleY, ty = aTransY, sz = aScaleZ, tz = aTransZ] __device__(auto&& a) {
+    const auto& lResult = mImpl->Transform(lBeginIter, lEndIter, [sx = aScaleX, tx = aTransX, sy = aScaleY, ty = aTransY, sz = aScaleZ, tz = aTransZ] __device__(auto&& a) {
         return MarketDataFields(thrust::get<0>(a) * sx + tx,     // index
                                 thrust::get<1>(a) * sy + ty,     // open
                                 thrust::get<2>(a) * sy + ty,     // close
@@ -198,7 +198,7 @@ std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::LogSaxpy(con
                                                                lData.begin<amount_tag>() + lEndIndex     // amount
                                                                ));
 
-    const auto& lResult = mImpl->Saxpy(lBeginIter, lEndIter, [sx = aScaleX, tx = aTransX, sy = aScaleY, ty = aTransY, sz = aScaleZ, tz = aTransZ] __device__(auto&& a) {
+    const auto& lResult = mImpl->Transform(lBeginIter, lEndIter, [sx = aScaleX, tx = aTransX, sy = aScaleY, ty = aTransY, sz = aScaleZ, tz = aTransZ] __device__(auto&& a) {
         return MarketDataFields(thrust::get<0>(a) * sx + tx,           // index
                                 logf(thrust::get<1>(a)) * sy + ty,     // open
                                 logf(thrust::get<2>(a)) * sy + ty,     // close
@@ -215,19 +215,49 @@ std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::LogSaxpy(con
 
 MarketDataFields DataAnalyzer::operator[](const std::size_t aIndex) const
 {
-    return (*mImpl)[aIndex];
-    // const auto& lData = mImpl->Data();
-    //
-    // return MarketDataFields{
-    //     (*mImpl)[aIndex].index,
-    //     lData.at<open_tag>(aIndex),      // open
-    //     lData.at<close_tag>(aIndex),     // close
-    //     lData.at<low_tag>(aIndex),       // low
-    //     lData.at<high_tag>(aIndex),      // high
-    //     lData.at<volume_tag>(aIndex),    // volume
-    //     lData.at<amount_tag>(aIndex)     // amount};
-    // };
+    const auto& lData = mImpl->Data();
+
+    assert(aIndex < lData.size());
+
+    if (mMarketingDataCache.Contains(aIndex))
+        return mMarketingDataCache[aIndex];
+
+    const auto aStartIndex = 0u;
+    const auto lSize       = 512u;
+    const auto lEndIndex   = aStartIndex + lSize;
+
+    const thrust::counting_iterator<int> lCounterBegin{static_cast<int>(aStartIndex)};
+    const thrust::counting_iterator<int> lCounterEnd{static_cast<int>(aStartIndex + lSize)};
+
+    const auto lBeginIter = thrust::make_zip_iterator(make_tuple(lCounterBegin,                              // index
+                                                                 lData.begin<open_tag>() + aStartIndex,      // open
+                                                                 lData.begin<close_tag>() + aStartIndex,     // close
+                                                                 lData.begin<low_tag>() + aStartIndex,       // low
+                                                                 lData.begin<high_tag>() + aStartIndex,      // high
+                                                                 lData.begin<volume_tag>() + aStartIndex,    // volume
+                                                                 lData.begin<amount_tag>() + aStartIndex     // amount
+                                                                 ));
+
+    const auto lEndIter = thrust::make_zip_iterator(make_tuple(lCounterEnd,                              // index
+                                                               lData.begin<open_tag>() + lEndIndex,      // open
+                                                               lData.begin<close_tag>() + lEndIndex,     // close
+                                                               lData.begin<low_tag>() + lEndIndex,       // low
+                                                               lData.begin<high_tag>() + lEndIndex,      // high
+                                                               lData.begin<volume_tag>() + lEndIndex,    // volume
+                                                               lData.begin<amount_tag>() + lEndIndex     // amount
+                                                               ));
+
+    mMarketingDataCache.Assign(lBeginIter, lEndIter, aStartIndex);
+
+    return mMarketingDataCache[aIndex];
 }
+
+
+MarketDataFields DataAnalyzer::Get(const std::size_t aIndex) const
+{
+    return (*mImpl)[aIndex];
+}
+
 
 std::size_t DataAnalyzer::Size() const
 {
