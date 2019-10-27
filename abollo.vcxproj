@@ -226,7 +226,6 @@
     <ClCompile Include="src\soci\core\use-type.cpp" />
     <ClCompile Include="src\soci\core\values.cpp" />
     <ClCompile Include="src\Window\Application.cpp" />
-    <CudaCompile Include="src\Market\Model\DataAnalyzerImpl.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\Graphics\vk\Instance.h" />
@@ -244,7 +243,7 @@
     <ClInclude Include="inc\Market\Model\DataAnalyzerImpl.h" />
     <ClInclude Include="inc\Market\Model\DataLoader.h" />
     <ClInclude Include="inc\Market\Model\PagedMarketingTable.h" />
-    <ClInclude Include="inc\Market\Model\Price.h" />
+    <ClInclude Include="inc\Market\Model\Column.h" />
     <ClInclude Include="inc\Market\Model\Table.h" />
     <ClInclude Include="inc\Market\Model\TradeDate.h" />
     <ClInclude Include="inc\Market\Painter.h" />
@@ -256,6 +255,9 @@
     <ClInclude Include="inc\Window\Event.h" />
     <ClInclude Include="inc\Window\Window.h" />
     <ClInclude Include="src\soci\backends\sqlite3\common.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="inc\Market\Model\DataAnalyzerImpl.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

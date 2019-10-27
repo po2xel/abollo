@@ -75,6 +75,58 @@ private:
             mLast = mFirst;
     }
 
+    template <typename Tag, typename Iterator>
+    void Append(Iterator aBegin, Iterator aEnd)
+    {
+        const auto lDistance = std::distance(aBegin, aEnd);
+        assert(lDistance >= 0 && static_cast<std::size_t>(lDistance) <= CAPACITY);
+
+        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, DeviceColumn<T, CAPACITY, Tag>>;
+
+        const auto lSize = std::min(CAPACITY - mLast, static_cast<std::size_t>(lDistance));
+        thrust::copy_n(aBegin, lSize, BaseType::begin() + mLast);
+
+        const auto lLeft = lDistance - lSize;
+
+        if (lLeft > 0)
+            thrust::copy_n(aBegin + lSize, lLeft, BaseType::begin());
+    }
+
+    template <typename Tag, typename Iterator>
+    void Prepend(Iterator aBegin, Iterator aEnd)
+    {
+        const auto lDistance = std::distance(aBegin, aEnd);
+        assert(lDistance >= 0 && static_cast<std::size_t>(lDistance) <= CAPACITY);
+
+        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, DeviceColumn<T, CAPACITY, Tag>>;
+
+        const auto lSize = std::min(mFirst, static_cast<std::size_t>(lDistance));
+        thrust::copy_n(aEnd - lSize, lSize, BaseType::begin() + mFirst - lSize);
+
+        const auto lLeft = lDistance - lSize;
+
+        if (lLeft > 0)
+            thrust::copy_n(aBegin, lLeft, BaseType::end() - lLeft);
+    }
+
+    template <typename V, typename... Ts, typename U>
+    void push_back(U&& aValue, TableSchema<V, Ts...>)
+    {
+        Append<V>(aValue.template begin<V>(), aValue.template end<V>());
+
+        if constexpr (sizeof...(Ts) > 0)
+            push_back(std::forward<U>(aValue), table_schema_v<Ts...>);
+    }
+
+    template<typename V, typename... Ts, typename U>
+    void push_front(U&& aValue, TableSchema<V, Ts...>)
+    {
+        Prepend<V>(aValue.template begin<V>(), aValue.template end<V>());
+
+        if constexpr (sizeof...(Ts) > 0)
+            push_front(std::forward<U>(aValue, table_schema_v<Ts...>));
+    }
+
 public:
     explicit CircularMarketingTable(std::string aCode) noexcept : mCode{std::move(aCode)}
     {
@@ -96,42 +148,18 @@ public:
         return BaseType::end();
     }
 
-    template <typename Tag, typename Iterator>
-    void Append(Iterator aBegin, Iterator aEnd)
+    template <typename U>
+    void push_back(U&& aValue)
     {
-        const auto lDistance = std::distance(aBegin, aEnd);
-        assert(lDistance >= 0 && static_cast<std::size_t>(lDistance) <= CAPACITY);
-
-        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, DeviceColumn<T, CAPACITY, Tag>>;
-
-        const auto lSize = std::min(CAPACITY - mLast, static_cast<std::size_t>(lDistance));
-        thrust::copy_n(aBegin, lSize, BaseType::begin() + mLast);
-
-        const auto lLeft = lDistance - lSize;
-
-        if (lLeft > 0)
-            thrust::copy_n(aBegin + lSize, lLeft, BaseType::begin());
-
-        Forward(lDistance);
+        push_back(std::forward<U>(aValue), table_schema_v<date_tag, Tags...>);
+        Forward(aValue.size());
     }
 
-    template <typename Tag, typename Iterator>
-    void Prepend(Iterator aBegin, Iterator aEnd)
+    template<typename U>
+    void push_front(U&& aValue)
     {
-        const auto lDistance = std::distance(aBegin, aEnd);
-        assert(lDistance >= 0 && static_cast<std::size_t>(lDistance) <= CAPACITY);
-
-        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, DeviceColumn<T, CAPACITY, Tag>>;
-
-        const auto lSize = std::min(mFirst, static_cast<std::size_t>(lDistance));
-        thrust::copy_n(aEnd - lSize, lSize, BaseType::begin() + mFirst - lSize);
-
-        const auto lLeft = lDistance - lSize;
-
-        if (lLeft > 0)
-            thrust::copy_n(aBegin, lLeft, BaseType::end() - lLeft);
-
-        Backward(lDistance);
+        push_front(std::forward<U>(aValue), table_schema_v<date_tag, Tags...>);
+        Backward(aValue.size());
     }
 };
 

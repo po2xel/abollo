@@ -39,24 +39,29 @@ private:
         using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, HostColumn<T, PAGE_SIZE, Tag>>;
 
         BaseType& lBaseColumn = *this;
-        lBaseColumn[mSize]    = aValue.template Get<Tag>();
+        lBaseColumn[mSize]    = std::forward<U>(aValue);
     }
 
-    template <typename... Ts, typename U>
-    void push_back(U&& aValue, TableSchema<Ts...>)
+    template <typename V, typename... Ts, typename U>
+    void push_back(U&& aValue, TableSchema<V, Ts...>)
     {
         assert(mSize + 1 < PAGE_SIZE);
 
-        (push_back<Ts>(std::forward<U>(aValue)), ...);
+        // (push_back<Ts>(std::forward<U>(aValue)), ...);
 
-        ++mSize;
+        push_back<V>(aValue.template Get<V>());
+
+        if constexpr (sizeof...(Ts) > 0)
+            push_back(std::forward<U>(aValue), table_schema_v<Ts...>);
     }
 
 public:
     template <typename U>
     void push_back(U&& aValue)
     {
-        push_back(aValue, table_schema_v<date_tag, Tags...>);
+        push_back(std::forward<U>(aValue), table_schema_v<date_tag, Tags...>);
+
+        ++mSize;
     }
 
     template <typename Tag>
@@ -73,6 +78,11 @@ public:
         using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, HostColumn<T, PAGE_SIZE, Tag>>;
 
         return BaseType::end();
+    }
+
+    [[nodiscard]] std::size_t size() const
+    {
+        return mSize;
     }
 
     void clear()

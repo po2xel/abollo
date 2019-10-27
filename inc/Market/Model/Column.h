@@ -3,14 +3,10 @@
 
 
 
-#include <tuple>
-
 #include <date/date.h>
 #include <thrust/host_vector.h>
 #include <thrust/tuple.h>
 #include <utility>
-
-#include "Market/Model/ColumnTraits.h"
 
 
 
@@ -28,51 +24,51 @@ using DatePriceZipIterator = thrust::zip_iterator<DatePriceIterator>;
 
 
 
-template <typename Tag>
-struct Price
-{
-    using type = Tag;
-
-    float value;
-};
-
-
-template <>
-struct Price<date_tag>
-{
-    using type = date_tag;
-
-    date::year_month_day value;
-};
-
-
-template <typename... T>
-struct Prices;
-
-
-template <typename... Tags>
-struct Prices<TableSchema<Tags...>> : Price<Tags>...
-{
-    template <typename T, typename V>
-    auto& Set(V&& aValue)
-    {
-        Price<T>::value = std::forward<V>(aValue);
-
-        return *this;
-    }
-
-    template <typename T>
-    [[nodiscard]] auto Get() const
-    {
-        return Price<T>::value;
-    }
-
-    template <typename... Ts, typename = std::enable_if_t<(sizeof...(Ts) > 1u)>>
-    [[nodiscard]] auto Get() const
-    {
-        return std::make_tuple(Price<Ts>::value...);
-    }
-};
+// template <typename Tag>
+// struct Price
+// {
+//     using type = Tag;
+//
+//     float value;
+// };
+//
+//
+// template <>
+// struct Price<date_tag>
+// {
+//     using type = date_tag;
+//
+//     date::year_month_day value;
+// };
+//
+//
+// template <typename... T>
+// struct Columns;
+//
+//
+// template <typename... Tags>
+// struct Columns<TableSchema<Tags...>> : Price<Tags>...
+// {
+//     template <typename T, typename V>
+//     auto& Set(V&& aValue)
+//     {
+//         Price<T>::value = std::forward<V>(aValue);
+//
+//         return *this;
+//     }
+//
+//     template <typename T>
+//     [[nodiscard]] auto Get() const
+//     {
+//         return Price<T>::value;
+//     }
+//
+//     template <typename... Ts, typename = std::enable_if_t<(sizeof...(Ts) > 1u)>>
+//     [[nodiscard]] auto Get() const
+//     {
+//         return std::make_tuple(Price<Ts>::value...);
+//     }
+// };
 
 
 

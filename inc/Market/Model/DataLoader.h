@@ -20,7 +20,7 @@ namespace abollo
 class DataLoader
 {
 private:
-    constexpr static std::string_view INDEX_DAILY_SQL = "SELECT date, open, close, low, high, volume, amount "
+    constexpr static const char* INDEX_DAILY_SQL = "SELECT date, open, close, low, high, volume, amount "
                                                         "FROM index_daily_market "
                                                         "WHERE code = :code AND date >= :start AND date <= :end "
                                                         "ORDER BY date DESC";

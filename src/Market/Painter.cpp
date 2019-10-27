@@ -7,12 +7,13 @@
 #include <skia/include/effects/SkDashPathEffect.h>
 
 #include "Market/Model/DataAnalyzer.h"
-#include "Market/Model/Price.h"
+#include "Market/Model/Column.h"
 
 
 
 namespace abollo
 {
+
 
 
 constexpr auto DEFAULT_UPPER_COLOR  = SkColorSetARGB(0xFF, 0xDC, 0x32, 0x2F);

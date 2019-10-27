@@ -10,88 +10,10 @@
 #include <skia/include/core/SkCanvas.h>
 #include <skia/include/core/SkPath.h>
 #include <skia/include/core/SkTextBlob.h>
-#include <soci/values.h>
 
+#include "Market/Model/Column.h"
 #include "Market/Model/ColumnTraits.h"
 #include "Market/Model/DataAnalyzer.h"
-#include "Market/Model/DataLoader.h"
-#include "Market/Model/PagedMarketingTable.h"
-#include "Market/Model/Price.h"
-
-
-
-namespace soci
-{
-
-
-
-template <>
-struct type_conversion<abollo::ColumnTypes>
-{
-    using base_type = values;
-
-    static void from_base(const base_type& v, indicator /*ind*/, abollo::ColumnTypes& price)
-    {
-        price.Set<abollo::date_tag>(v.get<date::year_month_day>("date"));
-
-        price.Set<abollo::open_tag>(static_cast<float>(v.get<double>("open")));
-        price.Set<abollo::close_tag>(static_cast<float>(v.get<double>("close")));
-        price.Set<abollo::low_tag>(static_cast<float>(v.get<double>("low")));
-        price.Set<abollo::high_tag>(static_cast<float>(v.get<double>("high")));
-        price.Set<abollo::volume_tag>(static_cast<float>(v.get<double>("volume") / 1000000.f));
-        price.Set<abollo::amount_tag>(static_cast<float>(v.get<double>("amount") / 1000000.f));
-    }
-};
-
-
-template <>
-struct type_conversion<date::year_month_day>
-{
-    using base_type = std::tm;
-
-    static void from_base(const base_type& in, const indicator ind, date::year_month_day& out)
-    {
-        if (ind == i_null)
-            throw soci_error("Null value not allowed for this type");
-
-        out = date::year{in.tm_year + 1900} / (in.tm_mon + 1) / in.tm_mday;
-    }
-
-    static void to_base(const date::year_month_day& in, base_type& out, indicator& ind)
-    {
-        out.tm_mday = static_cast<int>(static_cast<unsigned>(in.day()));
-        out.tm_mon  = static_cast<int>(static_cast<unsigned>(in.month()) - 1);
-        out.tm_year = static_cast<int>(static_cast<int>(in.year()) - 1900);
-
-        ind = i_ok;
-    }
-};
-
-
-// template <>
-// struct type_conversion<std::string_view>
-// {
-//     using base_type = std::string;
-//
-//     static void from_base(const base_type& in, const indicator ind, std::string_view& out)
-//     {
-//         if (ind == i_null)
-//             throw soci_error("Null value not allowed for this type");
-//
-//         out = in;
-//     }
-//
-//     static void to_base(const std::string_view& in, base_type& out, indicator& ind)
-//     {
-//         out = in;
-//
-//         ind = i_ok;
-//     }
-// };
-
-
-
-}    // namespace soci
 
 
 
@@ -107,29 +29,6 @@ MarketCanvas::MarketCanvas()
     constexpr auto lStartDate{2018_y / 1 / 1}, lEndDate{2020_y / 1 / 1};
 
     mDataAnalyzer.LoadIndex("000905.SH", lStartDate, lEndDate);
-
-    mDataLoader.LoadIndex<ColumnTypes>("000905.SH", lStartDate, lEndDate, [this](const auto& aData) { mPagedTable.push_back(aData); });
-
-    std::copy(mPagedTable.begin<date_tag>(), mPagedTable.begin<date_tag>() + 10, std::ostream_iterator<date::year_month_day>(std::cout, "\t"));
-    std::cout << std::endl;
-
-    std::copy(mPagedTable.begin<open_tag>(), mPagedTable.begin<open_tag>() + 10, std::ostream_iterator<float>(std::cout, "\t"));
-    std::cout << std::endl;
-
-    std::copy(mPagedTable.begin<close_tag>(), mPagedTable.begin<close_tag>() + 10, std::ostream_iterator<float>(std::cout, "\t"));
-    std::cout << std::endl;
-
-    std::copy(mPagedTable.begin<low_tag>(), mPagedTable.begin<low_tag>() + 10, std::ostream_iterator<float>(std::cout, "\t"));
-    std::cout << std::endl;
-
-    std::copy(mPagedTable.begin<high_tag>(), mPagedTable.begin<high_tag>() + 10, std::ostream_iterator<float>(std::cout, "\t"));
-    std::cout << std::endl;
-
-    std::copy(mPagedTable.begin<volume_tag>(), mPagedTable.begin<volume_tag>() + 10, std::ostream_iterator<float>(std::cout, "\t"));
-    std::cout << std::endl;
-
-    std::copy(mPagedTable.begin<amount_tag>(), mPagedTable.begin<amount_tag>() + 10, std::ostream_iterator<float>(std::cout, "\t"));
-    std::cout << std::endl;
 
     mpMarketPainter = std::make_unique<Painter>();
 }

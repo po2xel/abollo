@@ -12,29 +12,9 @@
 #include <date/date.h>
 
 #include "Market/Model/ColumnTraits.h"
-#include "Market/Model/Price.h"
-
-
-
-namespace std
-{
-
-
-template <>
-struct hash<date::year_month_day>
-{
-    using argument_type = date::year_month_day;
-    using result_type   = std::size_t;
-
-    result_type operator()(const argument_type& s) const noexcept
-    {
-        return std::hash<int>{}(static_cast<date::sys_days>(s).time_since_epoch().count());
-    }
-};
-
-
-
-}    // namespace std
+#include "Market/Model/Column.h"
+#include "Market/Model/PagedMarketingTable.h"
+#include "Market/Model/DataLoader.h"
 
 
 
@@ -43,19 +23,27 @@ namespace abollo
 
 
 
+template <typename... Tags>
 class DataAnalyzerImpl;
+
 
 
 class DataAnalyzer final
 {
+public:
+    using PagedTableType = PagedMarketingTable<float, 10, open_tag, close_tag, low_tag, high_tag, volume_tag, amount_tag>;
+
 private:
-    std::unique_ptr<DataAnalyzerImpl> mImpl;
+    PagedTableType mPagedTable;
+    DataLoader mDataLoader;
+
+    std::unique_ptr<DataAnalyzerImpl<PagedTableType::Schema>> mImpl;
 
 public:
     DataAnalyzer();
     ~DataAnalyzer();
 
-    void LoadIndex(const std::string& aCode, const date::year_month_day& aStartDate, const date::year_month_day& aEndDate) const;
+    void LoadIndex(const std::string& aCode, const date::year_month_day& aStartDate, const date::year_month_day& aEndDate);
 
     [[nodiscard]] std::pair<DatePriceZipIterator, DatePriceZipIterator> Saxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
                                                                               const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const;

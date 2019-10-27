@@ -2,20 +2,17 @@
 #define __ABOLLO_MARKET_MODEL_DATA_ANALYZER_IMPL_H__
 
 
-#include <string>
 #include <tuple>
 #include <utility>
 
 #include <date/date.h>
-#include <soci/session.h>
-#include <soci/sqlite3/soci-sqlite3.h>
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include <boost/circular_buffer.hpp>
 
 #include "Market/Model/CircularMarketingTable.h"
+#include "Market/Model/Column.h"
 #include "Market/Model/ColumnTraits.h"
-#include "Market/Model/Price.h"
 
 
 
@@ -24,14 +21,15 @@ namespace abollo
 
 
 
-class DataAnalyzerImpl final
+template <typename... Tags>
+class DataAnalyzerImpl;
+
+
+
+template <typename... Tags>
+class DataAnalyzerImpl<TableSchema<Tags...>> final
 {
 private:
-    constexpr static const char* INDEX_DAILY_SQL = "SELECT date, open, close, low, high, volume, amount "
-                                                   "FROM index_daily_market "
-                                                   "WHERE code = :code AND date >= :start AND date <= :end "
-                                                   "ORDER BY date DESC";
-
     constexpr static std::size_t DEFAULT_BUFFER_ROW_SIZE = 6;
     constexpr static std::size_t DEFAULT_BUFFER_COL_SIZE{1024u};
 
@@ -43,14 +41,8 @@ private:
     constexpr static std::size_t DEFAULT_BUFFER_AMOUNT_POS = DEFAULT_BUFFER_VOLUME_POS + DEFAULT_BUFFER_COL_SIZE;
     constexpr static std::size_t DEFAULT_BUFFER_CAPACITY   = DEFAULT_BUFFER_AMOUNT_POS + DEFAULT_BUFFER_COL_SIZE;
 
-    soci::session mSession{soci::sqlite3, R"(data/ashare.db)"};
-
-    soci::statement mIndexDailyStmt;
-
-    const std::string mCode;
-
     /*
-     * Price data loaded from database is transferred to gpu and stored as the following format:
+     * Column data loaded from database is transferred to gpu and stored as the following format:
      * [0 ~ COL - 1][COL ~ COL * 2 -1][COL * 2 ~ COL * 3 -1][COL * 3 ~ COL * 4 -1][COL * 4 ~ COL * 5 -1][COL * 5 ~ COL * 6 -1]
      *    /\             /\                    /\                    /\                    /\                    /\
      *   open           close                 low                   high                 volume                amount
@@ -63,14 +55,12 @@ private:
 
     std::size_t mPriceCount{0};
 
-    CircularMarketingTable<float, 10, date_tag, open_tag, close_tag, low_tag, high_tag> mMarketingTable;
+    CircularMarketingTable<float, 10, Tags...> mMarketingTable;
 
 public:
-    DataAnalyzerImpl() : mIndexDailyStmt(mSession.prepare << INDEX_DAILY_SQL), mMarketingTable{""}
+    DataAnalyzerImpl() : mMarketingTable{""}
     {
     }
-
-    void LoadIndex(const std::string& aCode, const date::year_month_day& aStartDate, const date::year_month_day& aEndDate);
 
     [[nodiscard]] std::tuple<float, float, float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize) const;
     [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize, const ColumnTraits<price_tag>) const;
@@ -87,11 +77,27 @@ public:
     {
         return mPriceCount;
     }
+
+    template <typename U>
+    void Append(U&& aData)
+    {
+        mMarketingTable.push_back(std::forward<U>(aData));
+    }
+
+    template <typename U>
+    void Prepend(U&& aData)
+    {
+        mMarketingTable.push_front(std::forward<U>(aData));
+    }
 };
 
 
 
 }    // namespace abollo
+
+
+
+#include "Market/Model/DataAnalyzerImpl.inl"
 
 
 
