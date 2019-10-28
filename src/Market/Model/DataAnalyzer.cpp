@@ -172,6 +172,15 @@ std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::LogSaxpy(con
 {
     const auto& lData = mImpl->Data();
 
+    auto t = lData.begin();
+    for (auto i = 0; i < 10; ++i, ++t)
+    {
+        const auto lt = *t;
+        std::cout << lt.get<0>() << "\t" << lt.get<1>() << "\t" << lt.get<2>()  << "\t" << lt.get<3>() << "\t" << lt.get<4>() << "\t" << lt.get<5>() << "\t" << lt.get<6>() << std::endl;
+    }
+
+    t = lData.end();
+
     assert(aStartIndex < lData.size());
 
     const auto lSize     = std::min(aSize, Size() - aStartIndex);

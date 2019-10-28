@@ -134,12 +134,22 @@ public:
         return BaseType::begin();
     }
 
+    [[nodiscard]] auto begin() const
+    {
+        return thrust::make_zip_iterator(thrust::make_tuple(DateColumnType::begin(), DeviceColumn<T, CAPACITY, Tags>::begin()...));
+    }
+
     template <typename Tag>
     [[nodiscard]] auto end() const
     {
         using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, DeviceColumn<T, CAPACITY, Tag>>;
 
         return BaseType::end();
+    }
+
+    [[nodiscard]] auto end() const
+    {
+        return thrust::make_zip_iterator(thrust::make_tuple(DateColumnType::end(), DeviceColumn<T, CAPACITY, Tags>::end()...));
     }
 
     template <typename U>
