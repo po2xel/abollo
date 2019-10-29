@@ -9,7 +9,6 @@
 #include <boost/circular_buffer.hpp>
 
 #include "Market/Model/CircularMarketingTable.h"
-#include "Market/Model/ColumnTraits.h"
 
 
 
@@ -18,21 +17,16 @@ namespace abollo
 
 
 
-template <const uint8_t P, typename F, typename Tags>
-class DataAnalyzerImpl;
-
-
-
-template <const uint8_t P, typename F, typename... Tags>
-class DataAnalyzerImpl<P, F, TableSchema<Tags...>> final
+template <const uint8_t P, typename T, typename S>
+class DataAnalyzerImpl final
 {
 private:
     constexpr static std::size_t DEFAULT_BUFFER_COL_SIZE{1 << P};
 
-    CircularMarketingTable<float, P, Tags...> mMarketingTable;
+    CircularMarketingTable<float, P, S> mMarketingTable;
 
-    mutable thrust::device_vector<F> mDeviceTempBuffer{DEFAULT_BUFFER_COL_SIZE};
-    mutable thrust::host_vector<F> mHostTempBuffer{DEFAULT_BUFFER_COL_SIZE};
+    mutable thrust::device_vector<T> mDeviceTempBuffer{DEFAULT_BUFFER_COL_SIZE};
+    mutable thrust::host_vector<T> mHostTempBuffer{DEFAULT_BUFFER_COL_SIZE};
 
 public:
     template <typename Iterator, typename Op>

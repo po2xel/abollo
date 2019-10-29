@@ -66,8 +66,22 @@ struct Row<TableSchema<Tags...>> : RowValue<Tags>...
 
 
 
-template <typename C, const std::size_t Size, typename... Ys>
-class Table : protected Column<C, Size, Ys>...
+template <typename C, const std::size_t Size, typename... Tags>
+class Table : protected Column<C, Size, Tags>...
+{
+public:
+    using Schema = TableSchema<Tags...>;
+};
+
+
+// template <typename C, const std::size_t Size, typename... Tags>
+// class Table<C, Size, TableSchema<Tags...>> : public Table<C, Size, Tags...>
+// {
+// };
+
+
+template <typename C, const std::size_t Size, typename... Tags>
+class Table<C, Size, std::tuple<Tags...>> : public Table<C, Size, Tags...>
 {
 };
 

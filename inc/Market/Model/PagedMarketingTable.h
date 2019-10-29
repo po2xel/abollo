@@ -21,10 +21,16 @@ using HostColumn = Column<thrust::host_vector<T>, Cap, Tag>;
 
 
 template <typename T, const uint8_t P, typename... Tags>
-class PagedMarketingTable : private HostColumn<date::year_month_day, 1 << P, date_tag>, public Table<thrust::host_vector<T>, 1 << P, Tags...>
+class PagedMarketingTable;
+
+
+
+template <typename T, const uint8_t P, typename... Tags>
+class PagedMarketingTable<T, P, TableSchema<Tags...>> : private HostColumn<date::year_month_day, 1 << P, date_tag>,
+                                                        public Table<thrust::host_vector<T>, 1 << P, remove_t<date_tag, Tags...>>
 {
 public:
-    using Schema = TableSchema<date_tag, Tags...>;
+    using Schema = TableSchema<Tags...>;
 
 private:
     using DateColumnType = HostColumn<date::year_month_day, 1 << P, date_tag>;
@@ -42,7 +48,7 @@ private:
         lBaseColumn[mSize]    = std::forward<U>(aValue);
     }
 
-    template <typename V, typename... Ts, typename U>
+    template <typename U, typename V, typename... Ts>
     void push_back(U&& aValue, TableSchema<V, Ts...>)
     {
         assert(mSize + 1 < PAGE_SIZE);
@@ -72,12 +78,22 @@ public:
         return BaseType::begin();
     }
 
+    [[nodiscard]] auto begin() const
+    {
+        return thrust::make_zip_iterator(thrust::make_tuple(std::conditional_t<std::is_same_v<date_tag, Tags>, DateColumnType, HostColumn<T, PAGE_SIZE, Tags>>::begin()...));
+    }
+
     template <typename Tag>
     [[nodiscard]] auto end() const
     {
         using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, HostColumn<T, PAGE_SIZE, Tag>>;
 
         return BaseType::end();
+    }
+
+    [[nodiscard]] auto end() const
+    {
+        return thrust::make_zip_iterator(thrust::make_tuple(std::conditional_t<std::is_same_v<date_tag, Tags>, DateColumnType, HostColumn<T, PAGE_SIZE, Tags>>::end()...));
     }
 
     [[nodiscard]] std::size_t size() const

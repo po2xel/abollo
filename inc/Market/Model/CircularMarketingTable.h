@@ -22,10 +22,16 @@ using DeviceColumn = Column<thrust::device_vector<T>, Cap, Tag>;
 
 
 template <typename T, const uint8_t P, typename... Tags>
-class CircularMarketingTable : private Column<thrust::host_vector<date::year_month_day>, 1 << P, date_tag>, public Table<thrust::device_vector<T>, 1 << P, Tags...>
+class CircularMarketingTable;
+
+
+
+template <typename T, const uint8_t P, typename... Tags>
+class CircularMarketingTable<T, P, TableSchema<Tags...>> : private Column<thrust::host_vector<date::year_month_day>, 1 << P, date_tag>,
+                                                           public Table<thrust::device_vector<T>, 1 << P, remove_t<date_tag, Tags...>>
 {
 public:
-    using Schema = TableSchema<date_tag, Tags...>;
+    using Schema = TableSchema<Tags...>;
 
 private:
     using DateColumnType = Column<thrust::host_vector<date::year_month_day>, 1 << P, date_tag>;
@@ -107,7 +113,7 @@ private:
             thrust::copy_n(aBegin, lLeft, BaseType::end() - lLeft);
     }
 
-    template <typename V, typename... Ts, typename U>
+    template <typename U, typename V, typename... Ts>
     void push_back(U&& aValue, TableSchema<V, Ts...>)
     {
         Append<V>(aValue.template begin<V>(), aValue.template end<V>());
@@ -116,7 +122,7 @@ private:
             push_back(std::forward<U>(aValue), table_schema_v<Ts...>);
     }
 
-    template <typename V, typename... Ts, typename U>
+    template <typename U, typename V, typename... Ts>
     void push_front(U&& aValue, TableSchema<V, Ts...>)
     {
         Prepend<V>(aValue.template begin<V>(), aValue.template end<V>());
@@ -136,7 +142,7 @@ public:
 
     [[nodiscard]] auto begin() const
     {
-        return thrust::make_zip_iterator(thrust::make_tuple(DateColumnType::begin(), DeviceColumn<T, CAPACITY, Tags>::begin()...));
+        return thrust::make_zip_iterator(thrust::make_tuple(std::conditional_t<std::is_same_v<date_tag, Tags>, DateColumnType, DeviceColumn<T, CAPACITY, Tags>>::begin()...));
     }
 
     template <typename Tag>
@@ -149,7 +155,7 @@ public:
 
     [[nodiscard]] auto end() const
     {
-        return thrust::make_zip_iterator(thrust::make_tuple(DateColumnType::end(), DeviceColumn<T, CAPACITY, Tags>::end()...));
+        return thrust::make_zip_iterator(thrust::make_tuple(std::conditional_t<std::is_same_v<date_tag, Tags>, DateColumnType, DeviceColumn<T, CAPACITY, Tags>>::end()...));
     }
 
     template <typename U>

@@ -21,7 +21,7 @@ namespace abollo
 
 
 
-template <const uint8_t P, typename F, typename Tags>
+template <const uint8_t P, typename T, typename S>
 class DataAnalyzerImpl;
 
 
@@ -33,9 +33,9 @@ private:
     constexpr static std::size_t DEFAULT_BUFFER_COL_SIZE = 1 << DEFAULT_BUFFER_COL_POWER;
 
 public:
-    using PagedTableType = PagedMarketingTable<float, DEFAULT_BUFFER_COL_POWER, open_tag, close_tag, low_tag, high_tag, volume_tag, amount_tag>;
-    using DataSchema     = PagedTableType::Schema;
-    using ImplType       = DataAnalyzerImpl<DEFAULT_BUFFER_COL_POWER, MarketDataFields, PagedTableType::Schema>;
+    using DataSchema     = TableSchema<date_tag, open_tag, close_tag, low_tag, high_tag, volume_tag, amount_tag>;
+    using PagedTableType = PagedMarketingTable<float, DEFAULT_BUFFER_COL_POWER, DataSchema>;
+    using ImplType       = DataAnalyzerImpl<DEFAULT_BUFFER_COL_POWER, MarketDataFields, DataSchema>;
 
 private:
     class Cache

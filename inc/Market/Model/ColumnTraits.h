@@ -3,6 +3,11 @@
 
 
 
+#include <tuple>
+#include <type_traits>
+
+
+
 namespace abollo
 {
 
@@ -35,6 +40,14 @@ template <typename Tag>
 constexpr ColumnTraits<Tag> column_v{};
 
 
+template <typename... Ts>
+using tuple_cat_t = decltype(std::tuple_cat(std::declval<Ts>()...));
+
+
+template <typename T, typename... Ts>
+using remove_t = tuple_cat_t<std::conditional_t<std::is_same_v<T, Ts>, std::tuple<>, std::tuple<Ts>>...>;
+
+
 
 template <typename... Tags>
 struct TableSchema
@@ -43,7 +56,14 @@ struct TableSchema
 
 
 template <typename... Tags>
-constexpr  TableSchema<Tags...> table_schema_v{};
+struct TableSchema<std::tuple<Tags...>> : public TableSchema<Tags...>
+{
+};
+
+
+
+template <typename... Tags>
+constexpr TableSchema<Tags...> table_schema_v{};
 
 
 
