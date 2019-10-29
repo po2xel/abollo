@@ -202,25 +202,6 @@ std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::LogSaxpy(con
 {
     const auto& lData = mImpl->Data();
 
-    auto t = lData.begin();
-
-    // for (auto i = 0; i < 10; ++i, ++t)
-    // {
-    //     const auto lt = *t;
-    //     std::cout << i << "\t" << lt.get<0>() << "\t" << lt.get<1>() << "\t" << lt.get<2>() << "\t" << lt.get<3>() << "\t" << lt.get<4>() << "\t" << lt.get<5>() << "\t"
-    //               << lt.get<6>() << std::endl;
-    // }
-    //
-    // t = lData.begin() + 3;
-    // for (auto i = 0; i < 10; ++i, ++t)
-    // {
-    //     const auto lt = *t;
-    //     std::cout << i << "\t" << lt.get<0>() << "\t" << lt.get<1>() << "\t" << lt.get<2>() << "\t" << lt.get<3>() << "\t" << lt.get<4>() << "\t" << lt.get<5>() << "\t"
-    //               << lt.get<6>() << std::endl;
-    // }
-    //
-    // t = lData.end();
-
     assert(aStartIndex < lData.size());
 
     const auto lSize     = std::min(aSize, Size() - aStartIndex);
@@ -229,26 +210,11 @@ std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::LogSaxpy(con
     const thrust::counting_iterator<std::size_t> lCounterBegin{aStartIndex};
     const thrust::counting_iterator<std::size_t> lCounterEnd{aStartIndex + lSize};
 
-    auto lt = detail::tuple_cat(lCounterBegin, t.get_iterator_tuple());
-    lt;
+    auto lTupleIter = lData.begin() + aStartIndex;
+    auto lBeginIter = thrust::make_zip_iterator(detail::tuple_cat(lCounterBegin, lTupleIter.get_iterator_tuple()));
 
-    const auto lBeginIter = thrust::make_zip_iterator(thrust::make_tuple(lCounterBegin,                              // index
-                                                                         lData.begin<open_tag>() + aStartIndex,      // open
-                                                                         lData.begin<close_tag>() + aStartIndex,     // close
-                                                                         lData.begin<low_tag>() + aStartIndex,       // low
-                                                                         lData.begin<high_tag>() + aStartIndex,      // high
-                                                                         lData.begin<volume_tag>() + aStartIndex,    // volume
-                                                                         lData.begin<amount_tag>() + aStartIndex     // amount
-                                                                         ));
-
-    const auto lEndIter = thrust::make_zip_iterator(thrust::make_tuple(lCounterEnd,                              // index
-                                                                       lData.begin<open_tag>() + lEndIndex,      // open
-                                                                       lData.begin<close_tag>() + lEndIndex,     // close
-                                                                       lData.begin<low_tag>() + lEndIndex,       // low
-                                                                       lData.begin<high_tag>() + lEndIndex,      // high
-                                                                       lData.begin<volume_tag>() + lEndIndex,    // volume
-                                                                       lData.begin<amount_tag>() + lEndIndex     // amount
-                                                                       ));
+    lTupleIter += lSize;
+    auto lEndIter = thrust::make_zip_iterator(detail::tuple_cat(lCounterEnd, lTupleIter.get_iterator_tuple()));
 
     const auto& lResult = mImpl->Transform(lBeginIter, lEndIter, [sx = aScaleX, tx = aTransX, sy = aScaleY, ty = aTransY, sz = aScaleZ, tz = aTransZ] __device__(auto&& a) {
         return MarketDataFields(thrust::get<0>(a) * sx + tx,           // index

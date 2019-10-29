@@ -71,13 +71,23 @@ class Table : protected Column<C, Size, Tags>...
 {
 public:
     using Schema = TableSchema<Tags...>;
+
+    [[nodiscard]] auto begin() const
+    {
+        return thrust::make_zip_iterator(thrust::make_tuple(Column<C, Size, Tags>::begin()...));
+    }
+
+    [[nodiscard]] auto end() const
+    {
+        return thrust::make_zip_iterator(thrust::make_tuple(Column<C, Size, Tags>::end()...));
+    }
 };
 
 
-// template <typename C, const std::size_t Size, typename... Tags>
-// class Table<C, Size, TableSchema<Tags...>> : public Table<C, Size, Tags...>
-// {
-// };
+template <typename C, const std::size_t Size, typename... Tags>
+class Table<C, Size, TableSchema<Tags...>> : public Table<C, Size, Tags...>
+{
+};
 
 
 template <typename C, const std::size_t Size, typename... Tags>

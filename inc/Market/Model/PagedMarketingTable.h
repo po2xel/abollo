@@ -33,7 +33,8 @@ public:
     using Schema = TableSchema<Tags...>;
 
 private:
-    using DateColumnType = HostColumn<date::year_month_day, 1 << P, date_tag>;
+    using DateColumn = HostColumn<date::year_month_day, 1 << P, date_tag>;
+    using BaseTable  = Table<thrust::host_vector<T>, 1 << P, remove_t<date_tag, Tags...>>;
 
     constexpr static std::size_t PAGE_SIZE = 1 << P;
 
@@ -42,7 +43,7 @@ private:
     template <typename Tag, typename U>
     void push_back(U&& aValue)
     {
-        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, HostColumn<T, PAGE_SIZE, Tag>>;
+        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumn, HostColumn<T, PAGE_SIZE, Tag>>;
 
         BaseType& lBaseColumn = *this;
         lBaseColumn[mSize]    = std::forward<U>(aValue);
@@ -73,27 +74,27 @@ public:
     template <typename Tag>
     [[nodiscard]] auto begin() const
     {
-        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, HostColumn<T, PAGE_SIZE, Tag>>;
+        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumn, HostColumn<T, PAGE_SIZE, Tag>>;
 
         return BaseType::begin();
     }
 
     [[nodiscard]] auto begin() const
     {
-        return thrust::make_zip_iterator(thrust::make_tuple(std::conditional_t<std::is_same_v<date_tag, Tags>, DateColumnType, HostColumn<T, PAGE_SIZE, Tags>>::begin()...));
+        return thrust::make_zip_iterator(thrust::make_tuple(std::conditional_t<std::is_same_v<date_tag, Tags>, DateColumn, HostColumn<T, PAGE_SIZE, Tags>>::begin()...));
     }
 
     template <typename Tag>
     [[nodiscard]] auto end() const
     {
-        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, HostColumn<T, PAGE_SIZE, Tag>>;
+        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumn, HostColumn<T, PAGE_SIZE, Tag>>;
 
         return BaseType::end();
     }
 
     [[nodiscard]] auto end() const
     {
-        return thrust::make_zip_iterator(thrust::make_tuple(std::conditional_t<std::is_same_v<date_tag, Tags>, DateColumnType, HostColumn<T, PAGE_SIZE, Tags>>::end()...));
+        return thrust::make_zip_iterator(thrust::make_tuple(std::conditional_t<std::is_same_v<date_tag, Tags>, DateColumn, HostColumn<T, PAGE_SIZE, Tags>>::end()...));
     }
 
     [[nodiscard]] std::size_t size() const

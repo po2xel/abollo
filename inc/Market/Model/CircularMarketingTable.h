@@ -34,7 +34,8 @@ public:
     using Schema = TableSchema<Tags...>;
 
 private:
-    using DateColumnType = Column<thrust::host_vector<date::year_month_day>, 1 << P, date_tag>;
+    using DateColumn = Column<thrust::host_vector<date::year_month_day>, 1 << P, date_tag>;
+    using BaseTable  = Table<thrust::device_vector<T>, 1 << P, remove_t<date_tag, Tags...>>;
 
     constexpr static std::size_t CAPACITY      = 1 << P;
     constexpr static std::size_t CAPACITY_MASK = CAPACITY - 1;
@@ -85,7 +86,7 @@ private:
         const auto lDistance = std::distance(aBegin, aEnd);
         assert(lDistance >= 0 && static_cast<std::size_t>(lDistance) <= CAPACITY);
 
-        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, DeviceColumn<T, CAPACITY, Tag>>;
+        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumn, DeviceColumn<T, CAPACITY, Tag>>;
 
         const auto lSize = std::min(CAPACITY - mLast, static_cast<std::size_t>(lDistance));
         thrust::copy_n(aBegin, lSize, BaseType::begin() + mLast);
@@ -102,7 +103,7 @@ private:
         const auto lDistance = std::distance(aBegin, aEnd);
         assert(lDistance >= 0 && static_cast<std::size_t>(lDistance) <= CAPACITY);
 
-        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, DeviceColumn<T, CAPACITY, Tag>>;
+        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumn, DeviceColumn<T, CAPACITY, Tag>>;
 
         const auto lSize = std::min(mFirst, static_cast<std::size_t>(lDistance));
         thrust::copy_n(aEnd - lSize, lSize, BaseType::begin() + mFirst - lSize);
@@ -132,31 +133,34 @@ private:
     }
 
 public:
+    using BaseTable::begin;
+    using BaseTable::end;
+
     template <typename Tag>
     [[nodiscard]] auto begin() const
     {
-        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, DeviceColumn<T, CAPACITY, Tag>>;
+        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumn, DeviceColumn<T, CAPACITY, Tag>>;
 
         return BaseType::begin();
     }
 
-    [[nodiscard]] auto begin() const
-    {
-        return thrust::make_zip_iterator(thrust::make_tuple(std::conditional_t<std::is_same_v<date_tag, Tags>, DateColumnType, DeviceColumn<T, CAPACITY, Tags>>::begin()...));
-    }
+    // [[nodiscard]] auto begin() const
+    // {
+    //     return thrust::make_zip_iterator(thrust::make_tuple(std::conditional_t<std::is_same_v<date_tag, Tags>, DateColumnType, DeviceColumn<T, CAPACITY, Tags>>::begin()...));
+    // }
 
     template <typename Tag>
     [[nodiscard]] auto end() const
     {
-        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, DeviceColumn<T, CAPACITY, Tag>>;
+        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumn, DeviceColumn<T, CAPACITY, Tag>>;
 
         return BaseType::end();
     }
 
-    [[nodiscard]] auto end() const
-    {
-        return thrust::make_zip_iterator(thrust::make_tuple(std::conditional_t<std::is_same_v<date_tag, Tags>, DateColumnType, DeviceColumn<T, CAPACITY, Tags>>::end()...));
-    }
+    // [[nodiscard]] auto end() const
+    // {
+    //     return thrust::make_zip_iterator(thrust::make_tuple(std::conditional_t<std::is_same_v<date_tag, Tags>, DateColumnType, DeviceColumn<T, CAPACITY, Tags>>::end()...));
+    // }
 
     template <typename U>
     void push_back(U&& aValue)
@@ -180,7 +184,7 @@ public:
     template <typename Tag>
     [[nodiscard]] auto at(const std::size_t aIndex) const
     {
-        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumnType, DeviceColumn<T, CAPACITY, Tag>>;
+        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumn, DeviceColumn<T, CAPACITY, Tag>>;
 
         return BaseType::operator[](aIndex);
     }
