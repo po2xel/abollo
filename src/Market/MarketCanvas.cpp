@@ -30,7 +30,7 @@ MarketCanvas::MarketCanvas()
     mDataAnalyzer.LoadIndex("000905.SH", lStartDate, lEndDate);
 
     mpMarketPainter = std::make_unique<Painter>();
-    mpAxisPainter = std::make_unique<AxisPainter>();
+    mpAxisPainter   = std::make_unique<AxisPainter>();
 }
 
 
@@ -109,17 +109,17 @@ void MarketCanvas::Reload(SkCanvas& aCanvas)
     else
         mXAxis.max = static_cast<uint32_t>(mDataAnalyzer.Size());
 
-    const auto [lLow, lHigh] = mDataAnalyzer.MinMax(mXAxis.min, mXAxis.stride(), column_v<log_price_tag>);    // range in y axis is: [low boundary, high boundary]
+    const auto [lLow, lHigh] = mDataAnalyzer.MinMax<log_price_tag>(mXAxis.min, mXAxis.stride());    // range in y axis is: [low boundary, high boundary]
     mPriceAxis.min           = lLow;
     mPriceAxis.max           = lHigh;
     mPriceAxis.scale         = lScaleY * lHeight / (lLow - lHigh);
     mPriceAxis.trans         = lScaleY * (lLow * lHeight / (lHigh - lLow) + lHeight) + lTransY;
 
-    const auto [lMin, lMax] = mDataAnalyzer.MinMax(mXAxis.min, mXAxis.stride(), column_v<log_volume_tag>);
-    mVolumeAxis.min            = lMin;
-    mVolumeAxis.max            = lMax;
-    mVolumeAxis.scale          = lScaleY * lHeight / (lMin - lMax);
-    mVolumeAxis.trans          = lScaleY * (lMin * lHeight / (lMax - lMin) + lHeight) + lTransY;
+    const auto [lMin, lMax] = mDataAnalyzer.MinMax<log_volume_tag>(mXAxis.min, mXAxis.stride());
+    mVolumeAxis.min         = lMin;
+    mVolumeAxis.max         = lMax;
+    mVolumeAxis.scale       = lScaleY * lHeight / (lMin - lMax);
+    mVolumeAxis.trans       = lScaleY * (lMin * lHeight / (lMax - lMin) + lHeight) + lTransY;
 }
 
 
@@ -162,7 +162,8 @@ void MarketCanvas::Paint(SkSurface* apSurface)
     // const auto& lVolMat           = SkMatrix::MakeAll(width / lRangeX, 0.f, 0.f, 0.f, height / (lMin - lMax), lMin * height / (lMax - lMin) + height, 0.f, 0.f, 1.f);
     // const auto [lScaleZ, lTransZ] = VolumeTrans(lCanvas, lVolMat);
 
-    const auto& lTransPrices = mDataAnalyzer.LogSaxpy(mXAxis.min, mXAxis.stride(), mXAxis.scale, mXAxis.trans, mPriceAxis.scale, mPriceAxis.trans, mVolumeAxis.scale, mVolumeAxis.trans);
+    const auto& lTransPrices =
+        mDataAnalyzer.Saxpy<log_price_tag>(mXAxis.min, mXAxis.stride(), mXAxis.scale, mXAxis.trans, mPriceAxis.scale, mPriceAxis.trans, mVolumeAxis.scale, mVolumeAxis.trans);
 
     lCanvas.resetMatrix();
 
@@ -173,9 +174,8 @@ void MarketCanvas::Paint(SkSurface* apSurface)
 
     assert(mSelectedCandle >= mXAxis.min);
 
-    const auto& lSelectedCandle = mDataAnalyzer.Get(mSelectedCandle - mXAxis.min);
-    const auto& lCandleData = mDataAnalyzer[mSelectedCandle - mXAxis.min];
-    mpMarketPainter->Highlight(lCanvas, lSelectedCandle, lCandleData, mCandleWidth);
+    const auto& lCandleData     = mDataAnalyzer[mSelectedCandle - mXAxis.min];
+    mpMarketPainter->Highlight(lCanvas, lCandleData, mCandleWidth);
 }
 
 

@@ -14,42 +14,59 @@ namespace abollo
 {
 
 
+template <typename I, typename V>
+struct MarketDataField
+{
+    using index_type = I;
+    using value_type = V;
+    using tuple_type = thrust::tuple<index_type, value_type, value_type, value_type, value_type, value_type, value_type>;
+
+    index_type index{};
+
+    value_type open{};
+    value_type close{};
+    value_type low{};
+    value_type high{};
+    value_type volume{};
+    value_type amount{};
+
+    __host__ __device__ MarketDataField()
+    {
+    }
+
+    __host__ __device__ MarketDataField(index_type i, value_type o, value_type c, value_type l, value_type h, value_type v, value_type a)
+        : index{i}, open{o}, close{c}, low{l}, high{h}, volume{v}, amount{a}
+    {
+    }
+
+    __host__ __device__ auto& operator=(const tuple_type& aData)
+    {
+        index  = thrust::get<0>(aData);
+        open   = thrust::get<1>(aData);
+        close  = thrust::get<2>(aData);
+        low    = thrust::get<3>(aData);
+        high   = thrust::get<4>(aData);
+        volume = thrust::get<5>(aData);
+        amount = thrust::get<6>(aData);
+
+        return *this;
+    }
+};
+
+
 
 struct MarketDataFields
 {
-    float index{0.f};
-
-    float open{0.f};
-    float close{0.f};
-    float low{0.f};
-    float high{0.f};
-    float volume{0.f};
-    float amount{0.f};
+    MarketDataField<std::size_t, float> original;
+    MarketDataField<float, float> transformed;
 
     __host__ __device__ MarketDataFields()
     {
     }
 
-    __host__ __device__ MarketDataFields(float i, float o, float c, float l, float h, float v, float a) : index{i}, open{o}, close{c}, low{l}, high{h}, volume{v}, amount{a}
+    __host__ __device__ MarketDataFields(const MarketDataField<std::size_t, float>& aOriginal, const MarketDataField<float, float>& aTransformed)
+        : original{aOriginal}, transformed{aTransformed}
     {
-    }
-
-    __host__ __device__ MarketDataFields(const thrust::tuple<float, float, float, float, float, float, float>& aData)
-        : index{aData.get<0>()}, open{aData.get<1>()}, close{aData.get<2>()}, low{aData.get<3>()}, high{aData.get<4>()}, volume{aData.get<5>()}, amount{aData.get<6>()}
-    {
-    }
-
-    __host__ __device__ auto& operator=(const thrust::tuple<float, float, float, float, float, float, float>& aData)
-    {
-        index  = aData.get<0>();
-        open   = aData.get<1>();
-        close  = aData.get<2>();
-        low    = aData.get<3>();
-        high   = aData.get<4>();
-        volume = aData.get<5>();
-        amount = aData.get<6>();
-
-        return *this;
     }
 };
 

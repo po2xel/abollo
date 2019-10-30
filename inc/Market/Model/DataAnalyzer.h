@@ -38,37 +38,8 @@ public:
     using ImplType       = DataAnalyzerImpl<DEFAULT_BUFFER_COL_POWER, MarketDataFields, DataSchema>;
 
 private:
-    class Cache
-    {
-    private:
-        std::size_t mOffset{0};
-
-        thrust::host_vector<MarketDataFields> mBuffer;
-
-    public:
-        template <typename Iterator>
-        void Assign(Iterator aBegin, Iterator aEnd, const std::size_t aOffset)
-        {
-            mBuffer.assign(aBegin, aEnd);
-            mOffset = aOffset;
-        }
-
-        [[nodiscard]] bool Contains(const std::size_t aIndex) const
-        {
-            return mOffset <= aIndex && aIndex < (mOffset + mBuffer.size());
-        }
-
-        [[nodiscard]] auto& operator[](const std::size_t aIndex) const
-        {
-            assert(Contains(aIndex));
-
-            return mBuffer[aIndex - mOffset];
-        }
-    };
-
     PagedTableType mPagedTable;
     DataLoader mDataLoader;
-    mutable Cache mMarketingDataCache;
 
     std::unique_ptr<ImplType> mImpl;
 
@@ -78,21 +49,15 @@ public:
 
     void LoadIndex(const std::string& aCode, const date::year_month_day& aStartDate, const date::year_month_day& aEndDate);
 
-    [[nodiscard]] std::pair<DatePriceZipIterator, DatePriceZipIterator> Saxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
-                                                                              const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const;
-
-    [[nodiscard]] std::pair<DatePriceZipIterator, DatePriceZipIterator> LogSaxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
-                                                                                 const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const;
-
     [[nodiscard]] MarketDataFields operator[](const std::size_t aIndex) const;
-    [[nodiscard]] MarketDataFields Get(const std::size_t aIndex) const;
     [[nodiscard]] std::size_t Size() const;
 
-    [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize, ColumnTraits<price_tag>) const;
-    [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize, ColumnTraits<log_price_tag>) const;
+    template <typename T>
+    [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize) const;
 
-    [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize, ColumnTraits<volume_tag>) const;
-    [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize, ColumnTraits<log_volume_tag>) const;
+    template <typename T>
+    [[nodiscard]] std::pair<DatePriceZipIterator, DatePriceZipIterator> Saxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
+                                                                              const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const;
 };
 
 

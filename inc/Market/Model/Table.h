@@ -72,6 +72,14 @@ class Table : protected Column<C, Size, Tags>...
 public:
     using Schema = TableSchema<Tags...>;
 
+    [[nodiscard]] auto ibegin(const std::size_t aOffset) const
+    {
+        const thrust::counting_iterator<std::size_t> lCounterBegin{aOffset};
+
+        return thrust::make_zip_iterator(thrust::make_tuple(lCounterBegin, (Column<C, Size, Tags>::begin() + aOffset)...));
+    }
+
+
     [[nodiscard]] auto begin() const
     {
         return thrust::make_zip_iterator(thrust::make_tuple(Column<C, Size, Tags>::begin()...));
