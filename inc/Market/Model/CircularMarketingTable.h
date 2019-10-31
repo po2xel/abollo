@@ -16,7 +16,7 @@ namespace abollo
 
 
 
-template <typename T, const std::size_t Cap, typename Tag>
+template <typename T, const uint32_t Cap, typename Tag>
 using DeviceColumn = Column<thrust::device_vector<T>, Cap, Tag>;
 
 
@@ -37,12 +37,12 @@ private:
     using DateColumn = Column<thrust::host_vector<date::year_month_day>, 1 << P, date_tag>;
     using BaseTable  = Table<thrust::device_vector<T>, 1 << P, remove_t<date_tag, Tags...>>;
 
-    constexpr static std::size_t CAPACITY      = 1 << P;
-    constexpr static std::size_t CAPACITY_MASK = CAPACITY - 1;
+    constexpr static uint32_t CAPACITY      = 1 << P;
+    constexpr static uint32_t CAPACITY_MASK = CAPACITY - 1;
 
-    std::size_t mFirst{0};
-    std::size_t mLast{0};
-    std::size_t mSize{0};
+    uint32_t mFirst{0};
+    uint32_t mLast{0};
+    uint32_t mSize{0};
 
     [[nodiscard]] auto SpaceLeft() const
     {
@@ -54,7 +54,7 @@ private:
         return CAPACITY == mSize;
     }
 
-    void Forward(const std::size_t aSize)
+    void Forward(const uint32_t aSize)
     {
         if (mLast + aSize >= CAPACITY_MASK)
             mLast = (mLast + aSize) & CAPACITY_MASK;
@@ -67,7 +67,7 @@ private:
             mFirst = mLast;
     }
 
-    void Backward(const std::size_t aSize)
+    void Backward(const uint32_t aSize)
     {
         if (mFirst >= aSize)
             mFirst -= aSize;
@@ -84,11 +84,11 @@ private:
     void Append(Iterator aBegin, Iterator aEnd)
     {
         const auto lDistance = std::distance(aBegin, aEnd);
-        assert(lDistance >= 0 && static_cast<std::size_t>(lDistance) <= CAPACITY);
+        assert(lDistance >= 0 && static_cast<uint32_t>(lDistance) <= CAPACITY);
 
         using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumn, DeviceColumn<T, CAPACITY, Tag>>;
 
-        const auto lSize = std::min(CAPACITY - mLast, static_cast<std::size_t>(lDistance));
+        const auto lSize = std::min(CAPACITY - mLast, static_cast<uint32_t>(lDistance));
         thrust::copy_n(aBegin, lSize, BaseType::begin() + mLast);
 
         const auto lLeft = lDistance - lSize;
@@ -101,11 +101,11 @@ private:
     void Prepend(Iterator aBegin, Iterator aEnd)
     {
         const auto lDistance = std::distance(aBegin, aEnd);
-        assert(lDistance >= 0 && static_cast<std::size_t>(lDistance) <= CAPACITY);
+        assert(lDistance >= 0 && static_cast<uint32_t>(lDistance) <= CAPACITY);
 
         using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumn, DeviceColumn<T, CAPACITY, Tag>>;
 
-        const auto lSize = std::min(mFirst, static_cast<std::size_t>(lDistance));
+        const auto lSize = std::min(mFirst, static_cast<uint32_t>(lDistance));
         thrust::copy_n(aEnd - lSize, lSize, BaseType::begin() + mFirst - lSize);
 
         const auto lLeft = lDistance - lSize;
@@ -114,22 +114,18 @@ private:
             thrust::copy_n(aBegin, lLeft, BaseType::end() - lLeft);
     }
 
-    template <typename U, typename V, typename... Ts>
-    void push_back(U&& aValue, TableSchema<V, Ts...>)
+    template <typename U, typename... Ts>
+    void push_back(U&& aValue, TableSchema<Ts...>)
     {
-        Append<V>(aValue.template begin<V>(), aValue.template end<V>());
-
-        if constexpr (sizeof...(Ts) > 0)
-            push_back(std::forward<U>(aValue), table_schema_v<Ts...>);
+        using expander = int[];
+        (void)expander{0, (Append<Ts>(aValue.template begin<Ts>(), aValue.template end<Ts>()), 0)...};
     }
 
-    template <typename U, typename V, typename... Ts>
-    void push_front(U&& aValue, TableSchema<V, Ts...>)
+    template <typename U, typename... Ts>
+    void push_front(U&& aValue, TableSchema<Ts...>)
     {
-        Prepend<V>(aValue.template begin<V>(), aValue.template end<V>());
-
-        if constexpr (sizeof...(Ts) > 0)
-            push_front(std::forward<U>(aValue, table_schema_v<Ts...>));
+        using expander = int[];
+        (void)expander{0, (Prepend<Ts>(aValue.template begin<Ts>(), aValue.template end<Ts>()), 0)...};
     }
 
 public:
@@ -165,24 +161,24 @@ public:
     template <typename U>
     void push_back(U&& aValue)
     {
-        push_back(std::forward<U>(aValue), table_schema_v<date_tag, Tags...>);
+        push_back(std::forward<U>(aValue), table_schema_v<Tags...>);
         Forward(aValue.size());
     }
 
     template <typename U>
     void push_front(U&& aValue)
     {
-        push_front(std::forward<U>(aValue), table_schema_v<date_tag, Tags...>);
+        push_front(std::forward<U>(aValue), table_schema_v<Tags...>);
         Backward(aValue.size());
     }
 
-    [[nodiscard]] std::size_t size() const
+    [[nodiscard]] auto size() const
     {
         return mSize;
     }
 
     template <typename Tag>
-    [[nodiscard]] auto at(const std::size_t aIndex) const
+    [[nodiscard]] auto at(const uint32_t aIndex) const
     {
         using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumn, DeviceColumn<T, CAPACITY, Tag>>;
 

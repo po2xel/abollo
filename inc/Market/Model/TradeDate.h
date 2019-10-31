@@ -49,12 +49,12 @@ public:
         // mTradeDateStmt.bind_clean_up();
     }
 
-    auto& operator[](const std::size_t aIndex) const
+    auto& operator[](const uint32_t aIndex) const
     {
         return mTradeDates.at(aIndex);
     }
 
-    [[nodiscard]] std::size_t size() const
+    [[nodiscard]] auto size() const
     {
         return mTradeDates.size();
     }

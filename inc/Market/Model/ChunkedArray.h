@@ -13,7 +13,7 @@ namespace abollo
 
 
 
-template <typename C, const std::size_t Size, typename Tag>
+template <typename C, const uint32_t Size, typename Tag>
 class ChunkedArray
 {
 public:
@@ -60,12 +60,12 @@ public:
         return mColumn.cend();
     }
 
-    reference operator[](const std::size_t aIndex)
+    reference operator[](const uint32_t aIndex)
     {
         return mColumn[aIndex];
     }
 
-    const_reference operator[](const std::size_t aIndex) const
+    const_reference operator[](const uint32_t aIndex) const
     {
         return mColumn[aIndex];
     }

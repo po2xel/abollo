@@ -29,8 +29,8 @@ class DataAnalyzerImpl;
 class DataAnalyzer final
 {
 private:
-    constexpr static uint8_t DEFAULT_BUFFER_COL_POWER    = 10;
-    constexpr static std::size_t DEFAULT_BUFFER_COL_SIZE = 1 << DEFAULT_BUFFER_COL_POWER;
+    constexpr static uint8_t DEFAULT_BUFFER_COL_POWER = 10;
+    constexpr static uint32_t DEFAULT_BUFFER_COL_SIZE = 1 << DEFAULT_BUFFER_COL_POWER;
 
 public:
     using DataSchema     = TableSchema<date_tag, open_tag, close_tag, low_tag, high_tag, volume_tag, amount_tag>;
@@ -49,14 +49,14 @@ public:
 
     void LoadIndex(const std::string& aCode, const date::year_month_day& aStartDate, const date::year_month_day& aEndDate);
 
-    [[nodiscard]] MarketDataFields operator[](const std::size_t aIndex) const;
-    [[nodiscard]] std::size_t Size() const;
+    [[nodiscard]] MarketDataFields operator[](const uint32_t aIndex) const;
+    [[nodiscard]] uint32_t Size() const;
 
     template <typename T>
-    [[nodiscard]] std::pair<float, float> MinMax(const std::size_t aStartIndex, const std::size_t aSize) const;
+    [[nodiscard]] std::pair<float, float> MinMax(const uint32_t aStartIndex, const uint32_t aSize) const;
 
     template <typename T>
-    [[nodiscard]] std::pair<DatePriceZipIterator, DatePriceZipIterator> Saxpy(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX, const float aTransX,
+    [[nodiscard]] std::pair<DatePriceZipIterator, DatePriceZipIterator> Saxpy(const uint32_t aStartIndex, const uint32_t aSize, const float aScaleX, const float aTransX,
                                                                               const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const;
 };
 

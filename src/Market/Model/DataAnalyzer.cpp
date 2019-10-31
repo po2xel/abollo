@@ -19,7 +19,7 @@ namespace detail
 
 
 
-template <typename T, typename Tuple, std::size_t... Is>
+template <typename T, typename Tuple, uint32_t... Is>
 constexpr auto tuple_cat_impl(T&& t, const Tuple& ts, std::index_sequence<Is...>)
 {
     return thrust::make_tuple(std::forward<T>(t), thrust::get<Is>(ts)...);
@@ -151,24 +151,20 @@ void DataAnalyzer::LoadIndex(const std::string& aCode, const date::year_month_da
 }
 
 
-std::size_t DataAnalyzer::Size() const
+uint32_t DataAnalyzer::Size() const
 {
     return mImpl->Size();
 }
 
 
-MarketDataFields DataAnalyzer::operator[](const std::size_t aIndex) const
+MarketDataFields DataAnalyzer::operator[](const uint32_t aIndex) const
 {
-    const auto& lData = mImpl->Data();
-
-    assert(aIndex < lData.size());
-
     return (*mImpl)[aIndex];
 }
 
 
 template <>
-std::pair<float, float> DataAnalyzer::MinMax<price_tag>(const std::size_t aStartIndex, const std::size_t aSize) const
+std::pair<float, float> DataAnalyzer::MinMax<price_tag>(const uint32_t aStartIndex, const uint32_t aSize) const
 {
     const auto& lData = mImpl->Data();
 
@@ -184,7 +180,7 @@ std::pair<float, float> DataAnalyzer::MinMax<price_tag>(const std::size_t aStart
 
 
 template <>
-std::pair<float, float> DataAnalyzer::MinMax<log_price_tag>(const std::size_t aStartIndex, const std::size_t aSize) const
+std::pair<float, float> DataAnalyzer::MinMax<log_price_tag>(const uint32_t aStartIndex, const uint32_t aSize) const
 {
     const auto lMinMax = MinMax<price_tag>(aStartIndex, aSize);
 
@@ -193,7 +189,7 @@ std::pair<float, float> DataAnalyzer::MinMax<log_price_tag>(const std::size_t aS
 
 
 template <>
-std::pair<float, float> DataAnalyzer::MinMax<volume_tag>(const std::size_t aStartIndex, const std::size_t aSize) const
+std::pair<float, float> DataAnalyzer::MinMax<volume_tag>(const uint32_t aStartIndex, const uint32_t aSize) const
 {
     const auto& lData = mImpl->Data();
 
@@ -208,7 +204,7 @@ std::pair<float, float> DataAnalyzer::MinMax<volume_tag>(const std::size_t aStar
 
 
 template <>
-std::pair<float, float> DataAnalyzer::MinMax<log_volume_tag>(const std::size_t aStartIndex, const std::size_t aSize) const
+std::pair<float, float> DataAnalyzer::MinMax<log_volume_tag>(const uint32_t aStartIndex, const uint32_t aSize) const
 {
     const auto lMinMax = MinMax<volume_tag>(aStartIndex, aSize);
 
@@ -216,11 +212,9 @@ std::pair<float, float> DataAnalyzer::MinMax<log_volume_tag>(const std::size_t a
 }
 
 
-
 template <>
-std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy<price_tag>(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX,
-                                                                                     const float aTransX, const float aScaleY, const float aTransY, const float aScaleZ,
-                                                                                     const float aTransZ) const
+std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy<price_tag>(const uint32_t aStartIndex, const uint32_t aSize, const float aScaleX, const float aTransX,
+                                                                                     const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const
 {
     const auto& lData = mImpl->Data();
 
@@ -259,9 +253,8 @@ std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy<price_
 
 
 template <>
-std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy<log_price_tag>(const std::size_t aStartIndex, const std::size_t aSize, const float aScaleX,
-                                                                                         const float aTransX, const float aScaleY, const float aTransY, const float aScaleZ,
-                                                                                         const float aTransZ) const
+std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy<log_price_tag>(const uint32_t aStartIndex, const uint32_t aSize, const float aScaleX, const float aTransX,
+                                                                                         const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const
 {
     const auto& lData = mImpl->Data();
 

@@ -13,7 +13,7 @@ namespace abollo
 
 
 
-template <typename C, const std::size_t Size, typename Y>
+template <typename C, const uint32_t Size, typename Y>
 using Column = ChunkedArray<C, Size, Y>;
 
 
@@ -66,15 +66,15 @@ struct Row<TableSchema<Tags...>> : RowValue<Tags>...
 
 
 
-template <typename C, const std::size_t Size, typename... Tags>
+template <typename C, const uint32_t Size, typename... Tags>
 class Table : protected Column<C, Size, Tags>...
 {
 public:
     using Schema = TableSchema<Tags...>;
 
-    [[nodiscard]] auto ibegin(const std::size_t aOffset) const
+    [[nodiscard]] auto ibegin(const uint32_t aOffset) const
     {
-        const thrust::counting_iterator<std::size_t> lCounterBegin{aOffset};
+        const thrust::counting_iterator<uint32_t> lCounterBegin{aOffset};
 
         return thrust::make_zip_iterator(thrust::make_tuple(lCounterBegin, (Column<C, Size, Tags>::begin() + aOffset)...));
     }
@@ -92,13 +92,13 @@ public:
 };
 
 
-template <typename C, const std::size_t Size, typename... Tags>
+template <typename C, const uint32_t Size, typename... Tags>
 class Table<C, Size, TableSchema<Tags...>> : public Table<C, Size, Tags...>
 {
 };
 
 
-template <typename C, const std::size_t Size, typename... Tags>
+template <typename C, const uint32_t Size, typename... Tags>
 class Table<C, Size, std::tuple<Tags...>> : public Table<C, Size, Tags...>
 {
 };

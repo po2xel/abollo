@@ -21,7 +21,7 @@ template <const uint8_t P, typename T, typename S>
 class DataAnalyzerImpl final
 {
 private:
-    constexpr static std::size_t DEFAULT_BUFFER_COL_SIZE{1 << P};
+    constexpr static uint32_t DEFAULT_BUFFER_COL_SIZE{1 << P};
 
     CircularMarketingTable<float, P, S> mMarketingTable;
 
@@ -34,7 +34,7 @@ public:
     {
         const auto lSize = thrust::distance(aBeginIter, aEndIter);
 
-        assert(lSize <= mDeviceTempBuffer.capacity());
+        assert(static_cast<uint32_t>(lSize) <= mDeviceTempBuffer.capacity());
 
         mDeviceTempBuffer.clear();
 
@@ -50,12 +50,14 @@ public:
         return mMarketingTable;
     }
 
-    [[nodiscard]] auto& operator[](const std::size_t aIndex) const
+    [[nodiscard]] auto& operator[](const uint32_t aIndex) const
     {
+        assert(aIndex < mHostTempBuffer.size());
+
         return mHostTempBuffer[aIndex];
     }
 
-    [[nodiscard]] std::size_t Size() const
+    [[nodiscard]] auto Size() const
     {
         return mMarketingTable.size();
     }

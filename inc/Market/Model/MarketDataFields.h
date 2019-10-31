@@ -57,14 +57,14 @@ struct MarketDataField
 
 struct MarketDataFields
 {
-    MarketDataField<std::size_t, float> original;
+    MarketDataField<uint32_t, float> original;
     MarketDataField<float, float> transformed;
 
     __host__ __device__ MarketDataFields()
     {
     }
 
-    __host__ __device__ MarketDataFields(const MarketDataField<std::size_t, float>& aOriginal, const MarketDataField<float, float>& aTransformed)
+    __host__ __device__ MarketDataFields(const MarketDataField<uint32_t, float>& aOriginal, const MarketDataField<float, float>& aTransformed)
         : original{aOriginal}, transformed{aTransformed}
     {
     }

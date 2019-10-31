@@ -92,7 +92,7 @@ void MarketCanvas::Reload(SkCanvas& aCanvas)
     mXAxis.trans = lScaleX * lWidth + lTransX;
 
     const auto lStartIndex = std::lround((lWidth - mXAxis.trans) / mXAxis.scale);
-    if (lStartIndex >= 0 && static_cast<std::size_t>(lStartIndex) < mDataAnalyzer.Size())
+    if (lStartIndex >= 0 && static_cast<uint32_t>(lStartIndex) < mDataAnalyzer.Size())
         mXAxis.min = static_cast<uint32_t>(lStartIndex);
     else
         mXAxis.min = 0;
