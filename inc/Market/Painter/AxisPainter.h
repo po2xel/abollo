@@ -115,8 +115,10 @@ public:
         }
 
         const auto lStep = aAxis.stride() / lCount;
-        SkScalar lCoordX{0.f};
-        SkScalar lCoordY{0.f};
+        assert(lStep > 0);
+
+        auto lCoordX{0.f};
+        auto lCoordY{0.f};
 
         if constexpr (std::is_same_v<Pos, axis::Right>)
             lCoordX = lCanvasWidth - mLabelWidth;

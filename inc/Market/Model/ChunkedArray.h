@@ -60,14 +60,24 @@ public:
         return mColumn.cend();
     }
 
-    reference operator[](const uint32_t aIndex)
+    [[nodiscard]] decltype(auto) operator[](const uint32_t aIndex)
     {
         return mColumn[aIndex];
     }
 
-    const_reference operator[](const uint32_t aIndex) const
+    [[nodiscard]] auto operator[](const uint32_t aIndex) const
     {
         return mColumn[aIndex];
+    }
+
+    [[nodiscard]] auto front() const
+    {
+        return mColumn.front();
+    }
+
+    [[nodiscard]] auto back() const
+    {
+        return mColumn.back();
     }
 };
 

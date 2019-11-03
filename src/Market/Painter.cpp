@@ -75,14 +75,14 @@ void Painter::Highlight(SkCanvas& aCanvas, const MarketDataFields& aCandleData, 
     const auto lTransformed = aCandleData.transformed;
     const auto lOriginal    = aCandleData.original;
 
-    aCanvas.drawPoint(lTransformed.index, lTransformed.volume, paint);
+    aCanvas.drawPoint(lTransformed.seq, lTransformed.volume, paint);
 
     const auto lCandleColor = lTransformed.open > lTransformed.close ? DEFAULT_UPPER_COLOR : DEFAULT_LOWER_COLOR;
 
     const auto lHalfWidth = 1.05f * aCandleWidth / 2.f;
 
     // Draw candle body
-    const SkPoint lCandlePts[]{{lTransformed.index - lHalfWidth, lTransformed.open}, {lTransformed.index + lHalfWidth, lTransformed.close}};
+    const SkPoint lCandlePts[]{{lTransformed.seq - lHalfWidth, lTransformed.open}, {lTransformed.seq + lHalfWidth, lTransformed.close}};
     SkRect lCandleRect{};
     lCandleRect.set(lCandlePts[0], lCandlePts[1]);
 
@@ -93,19 +93,19 @@ void Painter::Highlight(SkCanvas& aCanvas, const MarketDataFields& aCandleData, 
     constexpr static std::string_view DEFAULT_LABEL_FORMAT_STR = "{:>8.2f}";
     auto lPriceLabel                                           = fmt::format(DEFAULT_LABEL_FORMAT_STR, lOriginal.volume);
 
-    aCanvas.drawString(lPriceLabel.data(), lTransformed.index, lTransformed.volume, mAxisLabelFont, mAxisPaint);
+    aCanvas.drawString(lPriceLabel.data(), lTransformed.seq, lTransformed.volume, mAxisLabelFont, mAxisPaint);
 
-    /*lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, lOriginal.open);
-    aCanvas.drawString(lPriceLabel.data(), lTransformed.index, lTransformed.open, mAxisLabelFont, mAxisPaint);
+    lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, lOriginal.open);
+    aCanvas.drawString(lPriceLabel.data(), lTransformed.seq, lTransformed.open, mAxisLabelFont, mAxisPaint);
 
     lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, lOriginal.close);
-    aCanvas.drawString(lPriceLabel.data(), lTransformed.index, lTransformed.close, mAxisLabelFont, mAxisPaint);
+    aCanvas.drawString(lPriceLabel.data(), lTransformed.seq, lTransformed.close, mAxisLabelFont, mAxisPaint);
 
     lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, lOriginal.low);
-    aCanvas.drawString(lPriceLabel.data(), lTransformed.index, lTransformed.low, mAxisLabelFont, mAxisPaint);
+    aCanvas.drawString(lPriceLabel.data(), lTransformed.seq, lTransformed.low, mAxisLabelFont, mAxisPaint);
 
     lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, lOriginal.high);
-    aCanvas.drawString(lPriceLabel.data(), lTransformed.index, lTransformed.high, mAxisLabelFont, mAxisPaint);*/
+    aCanvas.drawString(lPriceLabel.data(), lTransformed.seq, lTransformed.high, mAxisLabelFont, mAxisPaint);
 }
 
 
@@ -123,25 +123,25 @@ void Painter::DrawCandle(SkCanvas& aCanvas, const std::pair<DatePriceZipIterator
 
     SkColor lCandleColor;
 
-    auto lBegin = lData.first;
+    auto [lBegin, lEnd] = lData;
 
     SkPath lVolumePath;
 
     {
         const auto& lPrice = thrust::get<1>(*lBegin).transformed;
-        const auto lCoordX = lPrice.index;
+        const auto lCoordX = lPrice.seq;
 
         lVolumePath.moveTo(lCoordX, lPrice.volume);
     }
 
-    for (const auto lEnd = lData.second; lBegin != lEnd; ++lBegin)
+    for (; lBegin != lEnd; ++lBegin)
     {
         const auto& lDate   = thrust::get<0>(*lBegin);
         const auto& lFields = thrust::get<1>(*lBegin).transformed;
-        const auto lCoordX  = lFields.index;
+        const auto lCoordX  = lFields.seq;
 
         // Draw volume curve
-        lVolumePath.lineTo(lFields.index, lFields.volume);
+        lVolumePath.lineTo(lFields.seq, lFields.volume);
 
         // Draw date label
         if (lPrevCoordX - lCoordX >= mDateLabelSpace)

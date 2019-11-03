@@ -51,10 +51,35 @@ SKCMS_API float skcms_TransferFunction_eval  (const skcms_TransferFunction*, flo
 SKCMS_API bool  skcms_TransferFunction_invert(const skcms_TransferFunction*,
                                               skcms_TransferFunction*);
 
-// Unified representation of 'curv' or 'para' tag data, or a 1D table from 'mft1' or 'mft2'
+// We can jam a couple alternate transfer function forms into skcms_TransferFunction,
+// including those matching the general forms of the SMPTE ST 2084 PQ function or HLG.
+//
+// PQish:
+//                              max(A + B|encoded|^C, 0)
+//    linear = sign(encoded) * (------------------------) ^ F
+//                                  D + E|encoded|^C
+SKCMS_API bool skcms_TransferFunction_makePQish(skcms_TransferFunction*,
+                                                float A, float B, float C,
+                                                float D, float E, float F);
+// HLGish:
+//            { sign(encoded) * ( (R|encoded|)^G )          when 0   <= |encoded| <= 1/R
+//   linear = { sign(encoded) * ( e^(a(|encoded|-c)) + b )  when 1/R <  |encoded|
+SKCMS_API bool skcms_TransferFunction_makeHLGish(skcms_TransferFunction*,
+                                                float R, float G,
+                                                float a, float b, float c);
 
-#pragma warning(push)
-#pragma warning(disable : 4201)
+// PQ mapping encoded [0,1] to linear [0,1].
+static inline bool skcms_TransferFunction_makePQ(skcms_TransferFunction* tf) {
+    return skcms_TransferFunction_makePQish(tf, -107/128.0f,         1.0f,   32/2523.0f
+                                              , 2413/128.0f, -2392/128.0f, 8192/1305.0f);
+}
+// HLG mapping encoded [0,1] to linear [0,12].
+static inline bool skcms_TransferFunction_makeHLG(skcms_TransferFunction* tf) {
+    return skcms_TransferFunction_makeHLGish(tf, 2.0f, 2.0f
+                                               , 1/0.17883277f, 0.28466892f, 0.55991073f);
+}
+
+// Unified representation of 'curv' or 'para' tag data, or a 1D table from 'mft1' or 'mft2'
 typedef union skcms_Curve {
     struct {
         uint32_t alias_of_table_entries;
@@ -66,8 +91,6 @@ typedef union skcms_Curve {
         const uint8_t* table_16;
     };
 } skcms_Curve;
-
-#pragma warning( pop )
 
 typedef struct skcms_A2B {
     // Optional: N 1D curves, followed by an N-dimensional CLUT.

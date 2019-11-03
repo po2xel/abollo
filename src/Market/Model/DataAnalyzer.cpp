@@ -69,6 +69,7 @@ struct type_conversion<RowType>
     {
         price.Set<abollo::date_tag>(v.get<date::year_month_day>("date"));
 
+        price.Set<abollo::seq_tag>(static_cast<float>(v.get<int>("seq")));
         price.Set<abollo::open_tag>(static_cast<float>(v.get<double>("open")));
         price.Set<abollo::close_tag>(static_cast<float>(v.get<double>("close")));
         price.Set<abollo::low_tag>(static_cast<float>(v.get<double>("low")));
@@ -143,17 +144,31 @@ DataAnalyzer::DataAnalyzer() : mImpl{std::make_unique<ImplType>()}
 DataAnalyzer::~DataAnalyzer() = default;
 
 
-void DataAnalyzer::LoadIndex(const std::string& aCode, const date::year_month_day& aStartDate, const date::year_month_day& aEndDate)
+std::pair<std::uint32_t, std::uint32_t> DataAnalyzer::LoadIndex(const std::string& aCode, const uint32_t& aOffset, const uint32_t& aLimit)
 {
-    mDataLoader.LoadIndex<RowType>(aCode, aStartDate, aEndDate, [this](const auto& aData) { mPagedTable.push_back(aData); });
+    PagedTableType lPagedTable;
 
-    mImpl->Append(mPagedTable);
+    mDataLoader.LoadIndex<RowType>(aCode, aOffset, aLimit, [&lPagedTable](const auto& aData) { lPagedTable.push_back(aData); });
+
+    mStartSeq = static_cast<uint32_t>(lPagedTable.back<seq_tag>());
+    mEndSeq   = static_cast<uint32_t>(lPagedTable.front<seq_tag>());
+
+    mImpl->Append(lPagedTable);
+
+    return {mStartSeq, mEndSeq};
 }
 
 
 uint32_t DataAnalyzer::Size() const
 {
     return mImpl->Size();
+}
+
+
+template <>
+std::pair<float, float> DataAnalyzer::Range<seq_tag>() const
+{
+    return mImpl->Range<seq_tag>();
 }
 
 
@@ -164,131 +179,120 @@ MarketDataFields DataAnalyzer::operator[](const uint32_t aIndex) const
 
 
 template <>
-std::pair<float, float> DataAnalyzer::MinMax<price_tag>(const uint32_t aStartIndex, const uint32_t aSize) const
+std::pair<float, float> DataAnalyzer::MinMax<price_tag>(const uint32_t aStartIndex, const uint32_t aEndIndex) const
 {
-    const auto& lData = mImpl->Data();
+    const auto lRange = Normalize(aStartIndex, aEndIndex);
 
-    assert(aStartIndex < lData.size());
-
-    const auto lEndIndex = aStartIndex + std::min(aSize, Size() - aStartIndex);
-
-    const auto lMinIter = thrust::min_element(lData.begin<low_tag>() + aStartIndex, lData.begin<low_tag>() + lEndIndex);
-    const auto lMaxIter = thrust::max_element(lData.begin<high_tag>() + aStartIndex, lData.begin<high_tag>() + lEndIndex);
+    const auto& lData   = mImpl->Data();
+    const auto lMinIter = thrust::min_element(lData.begin<low_tag>() + lRange.first, lData.begin<low_tag>() + lRange.second);
+    const auto lMaxIter = thrust::max_element(lData.begin<high_tag>() + lRange.first, lData.begin<high_tag>() + lRange.second);
 
     return std::make_pair(*lMinIter, *lMaxIter);
 }
 
 
 template <>
-std::pair<float, float> DataAnalyzer::MinMax<log_price_tag>(const uint32_t aStartIndex, const uint32_t aSize) const
+std::pair<float, float> DataAnalyzer::MinMax<log_price_tag>(const uint32_t aStartIndex, const uint32_t aEndIndex) const
 {
-    const auto lMinMax = MinMax<price_tag>(aStartIndex, aSize);
+    const auto lMinMax = MinMax<price_tag>(aStartIndex, aEndIndex);
 
     return std::make_pair(std::logf(lMinMax.first), std::logf(lMinMax.second));
 }
 
 
 template <>
-std::pair<float, float> DataAnalyzer::MinMax<volume_tag>(const uint32_t aStartIndex, const uint32_t aSize) const
+std::pair<float, float> DataAnalyzer::MinMax<volume_tag>(const uint32_t aStartIndex, const uint32_t aEndIndex) const
 {
-    const auto& lData = mImpl->Data();
+    const auto lRange = Normalize(aStartIndex, aEndIndex);
 
-    assert(aStartIndex < lData.size());
-
-    const auto lEndIndex = aStartIndex + std::min(aSize, Size() - aStartIndex);
-
-    const auto lMinMaxIter = thrust::minmax_element(lData.begin<volume_tag>() + aStartIndex, lData.begin<volume_tag>() + lEndIndex);
+    const auto& lData      = mImpl->Data();
+    const auto lMinMaxIter = thrust::minmax_element(lData.begin<volume_tag>() + lRange.first, lData.begin<volume_tag>() + lRange.second);
 
     return std::make_pair(*lMinMaxIter.first, *lMinMaxIter.second);
 }
 
 
 template <>
-std::pair<float, float> DataAnalyzer::MinMax<log_volume_tag>(const uint32_t aStartIndex, const uint32_t aSize) const
+std::pair<float, float> DataAnalyzer::MinMax<log_volume_tag>(const uint32_t aStartIndex, const uint32_t aEndIndex) const
 {
-    const auto lMinMax = MinMax<volume_tag>(aStartIndex, aSize);
+    const auto lMinMax = MinMax<volume_tag>(aStartIndex, aEndIndex);
 
     return std::make_pair(std::logf(lMinMax.first), std::logf(lMinMax.second));
 }
 
 
 template <>
-std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy<price_tag>(const uint32_t aStartIndex, const uint32_t aSize, const float aScaleX, const float aTransX,
+std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy<price_tag>(const uint32_t aStartIndex, const uint32_t aEndIndex, const float aScaleX, const float aTransX,
                                                                                      const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const
 {
+    const auto lRange = Normalize(aStartIndex, aEndIndex);
+
     const auto& lData = mImpl->Data();
+    const auto lIter  = lData.begin();
 
-    assert(aStartIndex < lData.size());
+    const auto& lResult =
+        mImpl->Transform(lIter + lRange.first, lIter + lRange.second, [sx = aScaleX, tx = aTransX, sy = aScaleY, ty = aTransY, sz = aScaleZ, tz = aTransZ] __device__(auto&& a) {
+            return MarketDataFields(
+                {
+                    thrust::get<0>(a),    // seq
+                    thrust::get<1>(a),    // open
+                    thrust::get<2>(a),    // close
+                    thrust::get<3>(a),    // low
+                    thrust::get<4>(a),    // high
+                    thrust::get<5>(a),    // volume
+                    thrust::get<6>(a)     // amount
+                },
+                {
+                    thrust::get<0>(a) * sx + tx,    // seq
+                    thrust::get<1>(a) * sy + ty,    // open
+                    thrust::get<2>(a) * sy + ty,    // close
+                    thrust::get<3>(a) * sy + ty,    // low
+                    thrust::get<4>(a) * sy + ty,    // high
+                    thrust::get<5>(a) * sz + tz,    // volume
+                    thrust::get<6>(a) * sz + tz     // amount
+                });
+        });
 
-    const auto lSize     = std::min(aSize, Size() - aStartIndex);
-    const auto lEndIndex = aStartIndex + lSize;
-
-    const auto lIter = lData.ibegin(aStartIndex);
-
-    const auto& lResult = mImpl->Transform(lIter, lIter + lSize, [sx = aScaleX, tx = aTransX, sy = aScaleY, ty = aTransY, sz = aScaleZ, tz = aTransZ] __device__(auto&& a) {
-        return MarketDataFields(
-            {
-                thrust::get<0>(a),    // index
-                thrust::get<1>(a),    // open
-                thrust::get<2>(a),    // close
-                thrust::get<3>(a),    // low
-                thrust::get<4>(a),    // high
-                thrust::get<5>(a),    // volume
-                thrust::get<6>(a)     // amount
-            },
-            {
-                thrust::get<0>(a) * sx + tx,    // index
-                thrust::get<1>(a) * sy + ty,    // open
-                thrust::get<2>(a) * sy + ty,    // close
-                thrust::get<3>(a) * sy + ty,    // low
-                thrust::get<4>(a) * sy + ty,    // high
-                thrust::get<5>(a) * sz + tz,    // volume
-                thrust::get<6>(a) * sz + tz     // amount
-            });
-    });
-
-    return std::make_pair(thrust::make_zip_iterator(thrust::make_tuple(lData.begin<date_tag>() + aStartIndex, lResult.begin())),
-                          thrust::make_zip_iterator(thrust::make_tuple(lData.begin<date_tag>() + lEndIndex, lResult.end())));
+    return std::make_pair(thrust::make_zip_iterator(thrust::make_tuple(lData.begin<date_tag>() + lRange.first, lResult.begin())),
+                          thrust::make_zip_iterator(thrust::make_tuple(lData.begin<date_tag>() + lRange.second, lResult.end())));
 }
 
 
 template <>
-std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy<log_price_tag>(const uint32_t aStartIndex, const uint32_t aSize, const float aScaleX, const float aTransX,
-                                                                                         const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const
+std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy<log_price_tag>(const uint32_t aStartIndex, const uint32_t aEndIndex, const float aScaleX,
+                                                                                         const float aTransX, const float aScaleY, const float aTransY, const float aScaleZ,
+                                                                                         const float aTransZ) const
 {
+    const auto lRange = Normalize(aStartIndex, aEndIndex);
+
     const auto& lData = mImpl->Data();
+    const auto lIter  = lData.begin();
 
-    assert(aStartIndex < lData.size());
+    const auto& lResult =
+        mImpl->Transform(lIter + lRange.first, lIter + lRange.second, [sx = aScaleX, tx = aTransX, sy = aScaleY, ty = aTransY, sz = aScaleZ, tz = aTransZ] __device__(auto&& a) {
+            return MarketDataFields(
+                {
+                    thrust::get<0>(a),    // seq
+                    thrust::get<1>(a),    // open
+                    thrust::get<2>(a),    // close
+                    thrust::get<3>(a),    // low
+                    thrust::get<4>(a),    // high
+                    thrust::get<5>(a),    // volume
+                    thrust::get<6>(a)     // amount
+                },
+                {
+                    thrust::get<0>(a) * sx + tx,          // seq
+                    logf(thrust::get<1>(a)) * sy + ty,    // open
+                    logf(thrust::get<2>(a)) * sy + ty,    // close
+                    logf(thrust::get<3>(a)) * sy + ty,    // low
+                    logf(thrust::get<4>(a)) * sy + ty,    // high
+                    logf(thrust::get<5>(a)) * sz + tz,    // volume
+                    logf(thrust::get<6>(a)) * sz + tz     // amount
+                });
+        });
 
-    const auto lSize     = std::min(aSize, Size() - aStartIndex);
-    const auto lEndIndex = aStartIndex + lSize;
-
-    const auto lIter = lData.ibegin(aStartIndex);
-
-    const auto& lResult = mImpl->Transform(lIter, lIter + lSize, [sx = aScaleX, tx = aTransX, sy = aScaleY, ty = aTransY, sz = aScaleZ, tz = aTransZ] __device__(auto&& a) {
-        return MarketDataFields(
-            {
-                thrust::get<0>(a),    // index
-                thrust::get<1>(a),    // open
-                thrust::get<2>(a),    // close
-                thrust::get<3>(a),    // low
-                thrust::get<4>(a),    // high
-                thrust::get<5>(a),    // volume
-                thrust::get<6>(a)     // amount
-            },
-            {
-                thrust::get<0>(a) * sx + tx,          // index
-                logf(thrust::get<1>(a)) * sy + ty,    // open
-                logf(thrust::get<2>(a)) * sy + ty,    // close
-                logf(thrust::get<3>(a)) * sy + ty,    // low
-                logf(thrust::get<4>(a)) * sy + ty,    // high
-                logf(thrust::get<5>(a)) * sz + tz,    // volume
-                logf(thrust::get<6>(a)) * sz + tz     // amount
-            });
-    });
-
-    return std::make_pair(thrust::make_zip_iterator(thrust::make_tuple(lData.begin<date_tag>() + aStartIndex, lResult.begin())),
-                          thrust::make_zip_iterator(thrust::make_tuple(lData.begin<date_tag>() + lEndIndex, lResult.end())));
+    return std::make_pair(thrust::make_zip_iterator(thrust::make_tuple(lData.begin<date_tag>() + lRange.first, lResult.begin())),
+                          thrust::make_zip_iterator(thrust::make_tuple(lData.begin<date_tag>() + lRange.second, lResult.end())));
 }
 
 

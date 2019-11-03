@@ -21,6 +21,8 @@ namespace abollo
 class MarketCanvas final
 {
 private:
+    constexpr static uint32_t DEFAULT_CANDLE_DELTA{20u};
+
     SkMatrix mTransMatrix;
 
     Axis<uint32_t, axis::Date> mXAxis;
@@ -32,6 +34,9 @@ private:
 
     SkScalar mCandleWidth{0.f};
     uint32_t mSelectedCandle{0};
+
+    uint32_t mStartSeq{0};
+    uint32_t mEndSeq{0};
 
     std::unique_ptr<Painter> mpMarketPainter;
     std::unique_ptr<AxisPainter> mpAxisPainter;

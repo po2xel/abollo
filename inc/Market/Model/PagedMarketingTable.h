@@ -54,7 +54,7 @@ private:
     template <typename U, typename... Ts>
     void push_back(U&& aValue, TableSchema<Ts...>)
     {
-        assert(mSize + 1 < CAPACITY);
+        assert(mSize + 1 <= CAPACITY);
 
         // (push_back<Ts>(std::forward<U>(aValue)), ...);
 
@@ -94,6 +94,7 @@ public:
 
     [[nodiscard]] auto end() const
     {
+        // return begin() + size();
         return thrust::make_zip_iterator(thrust::make_tuple(std::conditional_t<std::is_same_v<date_tag, Tags>, DateColumn, HostColumn<T, CAPACITY, Tags>>::end()...));
     }
 
@@ -105,6 +106,20 @@ public:
     void clear()
     {
         mSize = 0;
+    }
+
+    template <typename Tag>
+    [[nodiscard]] auto front() const
+    {
+        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumn, HostColumn<T, CAPACITY, Tag>>;
+
+        return BaseType::front();
+    }
+
+    template <typename Tag>
+    [[nodiscard]] auto back() const
+    {
+        return *(begin<Tag>() + size() - 1);
     }
 };
 

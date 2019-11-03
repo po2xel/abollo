@@ -68,6 +68,12 @@ public:
         mMarketingTable.push_back(std::forward<U>(aData));
     }
 
+    template <typename T>
+    std::pair<float, float> Range() const
+    {
+        return {mMarketingTable.template front<T>(), mMarketingTable.template back<T>()};
+    }
+
     template <typename U>
     void Prepend(U&& aData)
     {

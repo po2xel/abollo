@@ -72,8 +72,8 @@ public:
 #endif
 
 #ifdef SK_DAWN
-    static sk_sp<GrContext> MakeDawn(const dawn::Device& device, const GrContextOptions& options);
-    static sk_sp<GrContext> MakeDawn(const dawn::Device& device);
+    static sk_sp<GrContext> MakeDawn(const wgpu::Device& device, const GrContextOptions& options);
+    static sk_sp<GrContext> MakeDawn(const wgpu::Device& device);
 #endif
 
     static sk_sp<GrContext> MakeMock(const GrMockOptions*, const GrContextOptions&);
@@ -364,8 +364,9 @@ public:
 
     void storeVkPipelineCacheData();
 
-    static size_t ComputeTextureSize(SkColorType type, int width, int height, GrMipMapped,
-                                     bool useNextPow2 = false);
+    // Returns the gpu memory size of the the texture that backs the passed in SkImage. Returns 0 if
+    // the SkImage is not texture backed.
+    static size_t ComputeImageSize(sk_sp<SkImage> image, GrMipMapped, bool useNextPow2 = false);
 
     /*
      * Retrieve the default GrBackendFormat for a given SkColorType and renderability.

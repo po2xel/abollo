@@ -21,7 +21,7 @@ struct MarketDataField
     using value_type = V;
     using tuple_type = thrust::tuple<index_type, value_type, value_type, value_type, value_type, value_type, value_type>;
 
-    index_type index{};
+    index_type seq{};
 
     value_type open{};
     value_type close{};
@@ -35,13 +35,13 @@ struct MarketDataField
     }
 
     __host__ __device__ MarketDataField(index_type i, value_type o, value_type c, value_type l, value_type h, value_type v, value_type a)
-        : index{i}, open{o}, close{c}, low{l}, high{h}, volume{v}, amount{a}
+        : seq{i}, open{o}, close{c}, low{l}, high{h}, volume{v}, amount{a}
     {
     }
 
     __host__ __device__ auto& operator=(const tuple_type& aData)
     {
-        index  = thrust::get<0>(aData);
+        seq  = thrust::get<0>(aData);
         open   = thrust::get<1>(aData);
         close  = thrust::get<2>(aData);
         low    = thrust::get<3>(aData);
@@ -57,14 +57,14 @@ struct MarketDataField
 
 struct MarketDataFields
 {
-    MarketDataField<uint32_t, float> original;
+    MarketDataField<float, float> original;
     MarketDataField<float, float> transformed;
 
     __host__ __device__ MarketDataFields()
     {
     }
 
-    __host__ __device__ MarketDataFields(const MarketDataField<uint32_t, float>& aOriginal, const MarketDataField<float, float>& aTransformed)
+    __host__ __device__ MarketDataFields(const MarketDataField<float, float>& aOriginal, const MarketDataField<float, float>& aTransformed)
         : original{aOriginal}, transformed{aTransformed}
     {
     }

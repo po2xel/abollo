@@ -184,6 +184,20 @@ public:
 
         return BaseType::operator[](aIndex);
     }
+
+    template <typename Tag>
+    [[nodiscard]] auto front() const
+    {
+        using BaseType = std::conditional_t<std::is_same_v<date_tag, Tag>, DateColumn, DeviceColumn<T, CAPACITY, Tag>>;
+
+        return BaseType::front();
+    }
+
+    template <typename Tag>
+    [[nodiscard]] auto back() const
+    {
+        return *(begin<Tag>() + size() - 1);
+    }
 };
 
 

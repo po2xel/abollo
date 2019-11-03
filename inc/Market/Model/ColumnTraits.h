@@ -14,6 +14,7 @@ namespace abollo
 
 
 struct date_tag;
+struct seq_tag;
 struct open_tag;
 struct close_tag;
 struct low_tag;

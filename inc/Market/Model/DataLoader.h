@@ -3,9 +3,6 @@
 
 
 
-#include <string_view>
-
-#include <date/date.h>
 #include <soci/session.h>
 #include <soci/soci.h>
 #include <soci/sqlite3/soci-sqlite3.h>
@@ -20,10 +17,11 @@ namespace abollo
 class DataLoader
 {
 private:
-    constexpr static const char* INDEX_DAILY_SQL = "SELECT date, open, close, low, high, volume, amount "
-                                                        "FROM index_daily_market "
-                                                        "WHERE code = :code AND date >= :start AND date <= :end "
-                                                        "ORDER BY date DESC";
+    constexpr static const char* INDEX_DAILY_SQL = "SELECT date, seq, open, close, low, high, volume, amount "
+                                                   "FROM index_daily_market "
+                                                   "WHERE code = :code "
+                                                   "ORDER BY date DESC "
+                                                   "LIMIT :limit OFFSET :offset";
 
     soci::session mSession{soci::sqlite3, R"(data/ashare.db)"};
 
@@ -35,7 +33,7 @@ public:
     }
 
     template <typename T, typename LoadOp>
-    void LoadIndex(const std::string& aCode, const date::year_month_day& aStartDate, const date::year_month_day& aEndDate, LoadOp aLoadOp)
+    void LoadIndex(const std::string& aCode, const uint32_t& aOffset, const uint32_t& aLimit, LoadOp aLoadOp)
     {
         using soci::into;
         using soci::use;
@@ -43,8 +41,8 @@ public:
         T lRow{};
 
         mIndexDailyStmt.exchange(use(aCode, "code"));
-        mIndexDailyStmt.exchange(use(aStartDate, "start"));
-        mIndexDailyStmt.exchange(use(aEndDate, "end"));
+        mIndexDailyStmt.exchange(use(aLimit, "limit"));
+        mIndexDailyStmt.exchange(use(aOffset, "offset"));
         mIndexDailyStmt.exchange(into(lRow));
 
         mIndexDailyStmt.define_and_bind();
