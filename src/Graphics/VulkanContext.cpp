@@ -19,6 +19,7 @@ namespace abollo
 {
 
 
+
 VulkanContext::VulkanContext(const Window& aWindow, const std::string_view aAppName, const uint32_t aAppVersion, const std::string_view aEngineName, const uint32_t aEngineVersion)
     : mInstance{aAppName, aAppVersion, aEngineName, aEngineVersion}
 {
@@ -116,7 +117,7 @@ VulkanContext::VulkanContext(const Window& aWindow, const std::string_view aAppN
 #endif
 
     GrVkExtensions lExtensions;
-    lExtensions.init(lGetProc, mInstance, mPhysicalDevice, static_cast<uint32_t>(lInstanceExtensions.size()) , lInstanceExtensions.data(), 1, lDeviceExtensions.data());
+    lExtensions.init(lGetProc, mInstance, mPhysicalDevice, static_cast<uint32_t>(lInstanceExtensions.size()), lInstanceExtensions.data(), 1, lDeviceExtensions.data());
 
     const GrVkBackendContext lBackendContext{.fInstance           = mInstance,
                                              .fPhysicalDevice     = mPhysicalDevice,
@@ -156,9 +157,8 @@ void VulkanContext::CreateSwapchain()
 {
     const auto& lSurfaceCapabilities = mPhysicalDevice.GetSurfaceCapabilities(mSurface);
 
-    const VkExtent2D lExtent{
-        .width  = std::max(lSurfaceCapabilities.minImageExtent.width, std::min(lSurfaceCapabilities.maxImageExtent.width, lSurfaceCapabilities.currentExtent.width)),
-        .height = std::max(lSurfaceCapabilities.minImageExtent.height, std::min(lSurfaceCapabilities.maxImageExtent.height, lSurfaceCapabilities.currentExtent.height))};
+    mExtent = {.width  = std::max(lSurfaceCapabilities.minImageExtent.width, std::min(lSurfaceCapabilities.maxImageExtent.width, lSurfaceCapabilities.currentExtent.width)),
+               .height = std::max(lSurfaceCapabilities.minImageExtent.height, std::min(lSurfaceCapabilities.maxImageExtent.height, lSurfaceCapabilities.currentExtent.height))};
 
     const auto lImageCount                       = std::min(lSurfaceCapabilities.minImageCount + 2, lSurfaceCapabilities.maxImageCount);
     constexpr VkImageUsageFlags lImageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
@@ -180,7 +180,7 @@ void VulkanContext::CreateSwapchain()
                                                   .minImageCount    = lImageCount,
                                                   .imageFormat      = lSurfaceFormat,
                                                   .imageColorSpace  = lColorSpace,
-                                                  .imageExtent      = lExtent,
+                                                  .imageExtent      = mExtent,
                                                   .imageArrayLayers = 1,
                                                   .imageUsage       = lImageUsageFlags,
                                                   .preTransform     = lSurfaceCapabilities.currentTransform,
@@ -214,7 +214,7 @@ void VulkanContext::CreateSwapchain()
         vkDestroySwapchainKHR(mLogicalDevice, lSwapchainCreateInfo.oldSwapchain, nullptr);
     }
 
-    CreateBuffers(lSwapchainCreateInfo.imageFormat, kBGRA_8888_SkColorType, lExtent.width, lExtent.height);
+    CreateBuffers(lSwapchainCreateInfo.imageFormat, kBGRA_8888_SkColorType, mExtent.width, mExtent.height);
 }
 
 

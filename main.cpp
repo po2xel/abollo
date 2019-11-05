@@ -51,10 +51,11 @@ int main(int /*argc*/, char* /*argv*/[])
 
     VulkanContext lVulkanContext{lWindow, "Hello World", 1, "", 0};
 
-    MarketCanvas lMarketCanvas;
+    const auto& lExtent = lVulkanContext.GetExtent();
+    MarketCanvas lMarketCanvas{lExtent.width, lExtent.height};
 
     lEvents.On<WindowEvent::eShown>([&lVulkanContext, &lMarketCanvas] {
-        auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
+        const auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
 
         if (lBackBuffer)
         {
@@ -67,7 +68,7 @@ int main(int /*argc*/, char* /*argv*/[])
     lEvents.On<WindowEvent::eResized>([&lVulkanContext, &lMarketCanvas](const Sint32 /*aWidth*/, const Sint32 /*aHeight*/) {
         lVulkanContext.CreateSwapchain();
 
-        auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
+        const auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
 
         if (lBackBuffer)
         {
@@ -85,7 +86,7 @@ int main(int /*argc*/, char* /*argv*/[])
         // else
             // return;
 
-        auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
+        const auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
 
         if (lBackBuffer)
         {
@@ -98,7 +99,7 @@ int main(int /*argc*/, char* /*argv*/[])
     lEvents.On<MouseEvent::eWheel>([&lVulkanContext, &lMarketCanvas](const Sint32 aScrolledX, const Sint32 aScrolledY) {
         lMarketCanvas.Zoom(static_cast<SkScalar>(aScrolledX), static_cast<SkScalar>(aScrolledY));
 
-        auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
+        const auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
 
         if (lBackBuffer)
         {

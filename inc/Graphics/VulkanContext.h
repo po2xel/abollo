@@ -54,6 +54,7 @@ private:
 
     vk::LogicalDevice mLogicalDevice;
     VkSwapchainKHR mSwapchain{VK_NULL_HANDLE};
+    VkExtent2D mExtent;
 
     std::vector<VkImage> mSwapchainImages;
     std::vector<VkImageLayout> mImageLayouts;
@@ -89,6 +90,11 @@ public:
 
     sk_sp<SkSurface> GetBackBufferSurface();
     void SwapBuffers();
+
+    [[nodiscard]] const VkExtent2D& GetExtent() const
+    {
+        return mExtent;
+    }
 };
 
 

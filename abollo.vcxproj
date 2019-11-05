@@ -248,6 +248,7 @@
     <ClInclude Include="inc\Market\Model\TradeDate.h" />
     <ClInclude Include="inc\Market\Painter.h" />
     <ClInclude Include="inc\Market\Painter\AxisPainter.h" />
+    <ClInclude Include="inc\Utility\Median.h" />
     <ClInclude Include="inc\Utility\NonCopyable.h" />
     <ClInclude Include="inc\Utility\Singleton.h" />
     <ClInclude Include="inc\Window\Application.h" />

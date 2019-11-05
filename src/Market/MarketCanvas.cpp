@@ -21,15 +21,7 @@ namespace abollo
 
 
 
-template <typename T>
-constexpr const T& median(const T& a, const T& b, const T& c)
-{
-    return std::max(std::min(a, b), std::min(std::max(a, b), c));
-}
-
-
-
-MarketCanvas::MarketCanvas()
+MarketCanvas::MarketCanvas(const uint32_t& aWidth, const uint32_t& aHeight) : mWidth{aWidth}, mHeight{aHeight}
 {
     // using date::operator"" _y;
 
@@ -37,6 +29,33 @@ MarketCanvas::MarketCanvas()
     // mDataAnalyzer.LoadIndex("000905.SH", lStartDate, lEndDate);
 
     std::tie(mStartSeq, mEndSeq) = mDataAnalyzer.LoadIndex("000001.SH", 0, 1024);
+
+    /*
+     * 1. Transform x coordinate from data range (0, delta) to window range (0, width):
+     *      dataScale = width / delta               (1)
+     *
+     *  The minimum scale is:
+     *      dataScale_min = width / MAX_COUNT       (2)
+     *  The maximum scale is:
+     *      dataScale_max = width / MIN_COUNT       (3)
+     *
+     * 2. Zoom/Pan transformations in the window coordinate system:
+     *    modelScale' = modelScale * scale_delta * dataScale
+     * and
+     *    dataScale_min <= modelScale' <= dataScale_max,
+     * replace dataScale_min and dataScale_max with (2) and (3):
+     *    width / MAX_COUNT <= modelScale * scale_delta * dataScale <= width / MIN_COUNT
+     * replace dataScale with (1):
+     *    width / MAX_COUNT <= modelScale * scale_delta * width / delta <= width / MIN_COUNT
+     * the final result is:
+     *    delta / MAX_COUNT <= modelScale * scale_delta <= delta / MIN_COUNT
+     */
+
+    mDataScaleX = mWidth / DEFAULT_CANDLE_DELTA;
+    mMinScaleX  = DEFAULT_CANDLE_DELTA / MAX_CANDLE_COUNT;    // width / MAX_CANDLE_COUNT;
+    mMaxScaleX  = DEFAULT_CANDLE_DELTA / MIN_CANDLE_COUNT;    // width / MIN_CANDLE_COUNT;
+
+    mDataTransX = mWidth - mEndSeq / DEFAULT_CANDLE_DELTA * mWidth;    //  -offset * width / delta
 
     mpMarketPainter = std::make_unique<Painter>();
     mpAxisPainter   = std::make_unique<AxisPainter>();
@@ -77,24 +96,8 @@ std::pair<float, float> VolumeTrans(SkCanvas& aCanvas, const SkMatrix& aTransMat
 }
 
 
-void MarketCanvas::Reload(SkCanvas& aCanvas)
+void MarketCanvas::Reload()
 {
-    SkAutoCanvasRestore lGuard(&aCanvas, true);
-
-    aCanvas.concat(mTransMatrix);
-
-    const auto lCanvasClipBounds = aCanvas.getDeviceClipBounds();
-
-    const auto lWidth  = static_cast<SkScalar>(lCanvasClipBounds.width());     // canvas width
-    const auto lHeight = static_cast<SkScalar>(lCanvasClipBounds.height());    // canvas height
-    // const auto lRangeX = 20.f;                                                 // range in x axis is: [-Inf., rangeX]
-
-    const auto& lTransMatrix = aCanvas.getTotalMatrix();
-    const auto lScaleX       = lTransMatrix.getScaleX();
-    const auto lScaleY       = lTransMatrix.getScaleY();
-    const auto lTransX       = lTransMatrix.getTranslateX();
-    const auto lTransY       = lTransMatrix.getTranslateY();
-
     /** Calculate coordinate system transformation matrix:
      * 1. Transform y coordinate within the range (low, high) from the bottom-left system to the top-left window system:
      *   a). move y origin to the high:
@@ -142,11 +145,15 @@ void MarketCanvas::Reload(SkCanvas& aCanvas)
      * candleCount = DEFAULT_CANDLE_DELTA / scaleX;
      * candleWidth = windowWidth / candleCount = windowWidth * scaleX / DEFAULT_CANDLE_DELTA;
      */
-    mCandleWidth = lWidth / DEFAULT_CANDLE_DELTA * lScaleX;
+    // mCandleWidth = mWidth * lScaleX / DEFAULT_CANDLE_DELTA;
+    mCandleWidth = mZoomScaleX * mDataScaleX;
 
-    const auto lOffset = mEndSeq - DEFAULT_CANDLE_DELTA;
-    mXAxis.scale       = lScaleX * (lWidth / DEFAULT_CANDLE_DELTA);
-    mXAxis.trans       = -lScaleX * (lOffset * (lWidth / DEFAULT_CANDLE_DELTA)) + lTransX;
+    /*const auto lOffset = mEndSeq - DEFAULT_CANDLE_DELTA;
+    mXAxis.scale       = lScaleX * mWidth / DEFAULT_CANDLE_DELTA;
+    mXAxis.trans       = -lScaleX * lOffset * mWidth / DEFAULT_CANDLE_DELTA + lTransX;*/
+
+    mXAxis.scale = mZoomScaleX * mDataScaleX;
+    mXAxis.trans = mZoomScaleX * mDataTransX + mZoomTransX;
 
     /*
      * Calculate coordinates in the model system space:
@@ -165,7 +172,7 @@ void MarketCanvas::Reload(SkCanvas& aCanvas)
      *  C = inv(T) * |   y   |  =   | y / Sy - Ty / Sy     |  =  |   ( y - Ty) / Sy  |
      *               |   1   |      |        1             |     |          1        |
      */
-    mXAxis.max = std::lround((lWidth - mXAxis.trans) / mXAxis.scale);
+    mXAxis.max = std::lround((mWidth - mXAxis.trans) / mXAxis.scale);
 
     if (mXAxis.max > mEndSeq)
         mXAxis.max = mEndSeq;
@@ -192,19 +199,18 @@ void MarketCanvas::Reload(SkCanvas& aCanvas)
 
     mPriceAxis.min   = lLow;
     mPriceAxis.max   = lHigh;
-    mPriceAxis.scale = lScaleY * lHeight / (lLow - lHigh);
-    mPriceAxis.trans = lScaleY * (lHeight * lHigh / (lHigh - lLow)) + lTransY;
+    mPriceAxis.scale = mZoomScaleY * mHeight / (lLow - lHigh);
+    mPriceAxis.trans = mZoomScaleY * (mHeight * lHigh / (lHigh - lLow)) + mZoomTransY;
 
     auto [lMin, lMax] = mDataAnalyzer.MinMax<log_volume_tag>(mXAxis.min, mXAxis.max);
     lMin *= 0.99f;
     lMax *= 1.01f;
-    mVolumeAxis.min         = lMin;
-    mVolumeAxis.max         = lMax;
-    mVolumeAxis.scale       = lScaleY * lHeight / (lMin - lMax);
-    mVolumeAxis.trans       = lScaleY * (lHeight * lMax / (lMax - lMin)) + lTransY;
+    mVolumeAxis.min   = lMin;
+    mVolumeAxis.max   = lMax;
+    mVolumeAxis.scale = mZoomScaleY * mHeight / (lMin - lMax);
+    mVolumeAxis.trans = mZoomScaleY * (mHeight * lMax / (lMax - lMin)) + mZoomTransY;
 
-    if (std::isinf(mVolumeAxis.scale))
-        fmt::print("volume scale: {}, trans: {}\n\n", mVolumeAxis.scale, mVolumeAxis.trans);
+    assert(!std::isinf(mVolumeAxis.scale));
 }
 
 
@@ -214,20 +220,17 @@ void MarketCanvas::Paint(SkSurface* apSurface)
 
     lCanvas.clear(SK_ColorDKGRAY);
 
-    Reload(lCanvas);
+    Reload();
 
     const auto& lTransPrices =
         mDataAnalyzer.Saxpy<log_price_tag>(mXAxis.min, mXAxis.max, mXAxis.scale, mXAxis.trans, mPriceAxis.scale, mPriceAxis.trans, mVolumeAxis.scale, mVolumeAxis.trans);
-
-    SkAutoCanvasRestore lGuard(&lCanvas, true);
-    lCanvas.resetMatrix();
 
     mpMarketPainter->DrawCandle(lCanvas, lTransPrices, mCandleWidth);
 
     mpAxisPainter->Draw<axis::Right>(lCanvas, mPriceAxis);
     mpAxisPainter->Draw<axis::Left>(lCanvas, mVolumeAxis);
 
-    const auto& lCandleData = mDataAnalyzer[mXAxis.max - median(mXAxis.min, mXAxis.max, mSelectedCandle)];
+    const auto& lCandleData = mDataAnalyzer[mXAxis.max - Median(mXAxis.min, mXAxis.max, mSelectedCandle)];
     mpMarketPainter->Highlight(lCanvas, lCandleData, mCandleWidth);
 }
 

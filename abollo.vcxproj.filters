@@ -260,6 +260,9 @@
     <ClInclude Include="inc\Market\Painter\AxisPainter.h">
       <Filter>Header Files\Market\Painter</Filter>
     </ClInclude>
+    <ClInclude Include="inc\Utility\Median.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\Market\Model\DataAnalyzer.cpp">
