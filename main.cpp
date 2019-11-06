@@ -68,10 +68,10 @@ int main(int /*argc*/, char* /*argv*/[])
     lEvents.On<WindowEvent::eResized>([&lVulkanContext, &lMarketCanvas](const Sint32 /*aWidth*/, const Sint32 /*aHeight*/) {
         lVulkanContext.CreateSwapchain();
 
-        const auto lBackBuffer = lVulkanContext.GetBackBufferSurface();
-
-        if (lBackBuffer)
+        if (const auto lBackBuffer = lVulkanContext.GetBackBufferSurface(); lBackBuffer)
         {
+            lMarketCanvas.Resize();
+
             lMarketCanvas.Paint(lBackBuffer.get());
             lBackBuffer->flush();
             lVulkanContext.SwapBuffers();

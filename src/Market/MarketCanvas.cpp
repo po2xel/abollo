@@ -28,37 +28,22 @@ MarketCanvas::MarketCanvas(const uint32_t& aWidth, const uint32_t& aHeight) : mW
     // constexpr auto lStartDate{2019_y / 10 / 20}, lEndDate{2020_y / 1 / 1};
     // mDataAnalyzer.LoadIndex("000905.SH", lStartDate, lEndDate);
 
-    std::tie(mStartSeq, mEndSeq) = mDataAnalyzer.LoadIndex("000001.SH", 0, 1024);
+    std::tie(mStartSeq, mEndSeq) = mDataAnalyzer.LoadIndex("000905.SH", 0, 1024);
 
-    /*
-     * 1. Transform x coordinate from data range (0, delta) to window range (0, width):
-     *      dataScale = width / delta               (1)
-     *
-     *  The minimum scale is:
-     *      dataScale_min = width / MAX_COUNT       (2)
-     *  The maximum scale is:
-     *      dataScale_max = width / MIN_COUNT       (3)
-     *
-     * 2. Zoom/Pan transformations in the window coordinate system:
-     *    modelScale' = modelScale * scale_delta * dataScale
-     * and
-     *    dataScale_min <= modelScale' <= dataScale_max,
-     * replace dataScale_min and dataScale_max with (2) and (3):
-     *    width / MAX_COUNT <= modelScale * scale_delta * dataScale <= width / MIN_COUNT
-     * replace dataScale with (1):
-     *    width / MAX_COUNT <= modelScale * scale_delta * width / delta <= width / MIN_COUNT
-     * the final result is:
-     *    delta / MAX_COUNT <= modelScale * scale_delta <= delta / MIN_COUNT
-     */
-
-    mDataScaleX = mWidth / DEFAULT_CANDLE_DELTA;
-    mMinScaleX  = DEFAULT_CANDLE_DELTA / MAX_CANDLE_COUNT;    // width / MAX_CANDLE_COUNT;
-    mMaxScaleX  = DEFAULT_CANDLE_DELTA / MIN_CANDLE_COUNT;    // width / MIN_CANDLE_COUNT;
-
-    mDataTransX = mWidth - mEndSeq / DEFAULT_CANDLE_DELTA * mWidth;    //  -offset * width / delta
+    Resize();
 
     mpMarketPainter = std::make_unique<Painter>();
     mpAxisPainter   = std::make_unique<AxisPainter>();
+}
+
+
+void MarketCanvas::Resize()
+{
+    mDataScaleX = mWidth / DEFAULT_CANDLE_DELTA;
+    mDataTransX = mWidth - mEndSeq / DEFAULT_CANDLE_DELTA * mWidth;    //  -offset * width / delta
+
+    ZoomX();
+    PanX();
 }
 
 
@@ -93,6 +78,55 @@ std::pair<float, float> VolumeTrans(SkCanvas& aCanvas, const SkMatrix& aTransMat
     const auto& lTransMatrix = aCanvas.getTotalMatrix();
 
     return {lTransMatrix.getScaleY(), lTransMatrix.getTranslateY()};
+}
+
+
+void MarketCanvas::ZoomX()
+{
+    mXAxis.scale = mZoomScaleX * mDataScaleX;
+
+    /*
+     * candleCount = DEFAULT_CANDLE_DELTA / scaleX;
+     * candleWidth = windowWidth / candleCount = windowWidth * scaleX / DEFAULT_CANDLE_DELTA;
+     */
+    // mCandleWidth = mWidth * lScaleX / DEFAULT_CANDLE_DELTA = = mZoomScaleX * mDataScaleX;
+    mCandleWidth = mXAxis.scale;
+
+    /*
+     * The maximum candle index at coordinate (0, y, 1) is (endSeq - MIN_CANDLE_COUNT), which can be
+     * calculated by the inversion of transformation matrix:
+     *      endSeq - MIN_CANDLE_COUNT = -Tx / Sx
+     * So the minimum translation along x axis is:
+     *      Tx = -(endSeq - MIN_CANDLE_COUNT) * Sx = (MIN_CANDLE_COUNT - endSeq) * Sx       (1)
+     * Also,
+     *      Tx = zoomScaleX * dataTransX + panTransX                                        (2)
+     * Replace Tx in (1) with (2):
+     *      zoomScaleX * dataTransX + panTransX = (MIN_CANDLE_COUNT - endSeq) * Sx
+     * the minimum pan translation is:
+     *      minPanTransX = (MIN_CANDLE_COUNT - endSeq) * Sx - zoomScaleX * dataTransX
+     */
+    mMinPanTransX = (MIN_CANDLE_COUNT - mEndSeq) * mXAxis.scale - mZoomScaleX * mDataTransX;
+
+    /*
+     * The minimum candle index at coordinate (width, y, 1) is: (startSeq + MIN_CANDLE_COUNT), which can be
+     * calculated by the inversion of transformation matrix:
+     *      startSeq + MIN_CANDLE_COUNT = (width - Tx) / Sx
+     * So the maximum translation along x axis is:
+     *      Tx = width - (startSeq + MIN_CANDLE_COUNT) * Sx                             (1)
+     * Also,
+     *      Tx = zoomScaleX * dataTransX + panTransX                                    (2)
+     * Replace Tx in (1) with (2):
+     *      zoomScaleX * dataTransX + panTransX = width - (startSeq + MIN_CANDLE_COUNT) * Sx
+     * the maximum pan translation is:
+     *      maxPanTransX = width - (startSeq + MIN_CANDLE_COUNT) * Sx - zoomScaleX * dataTransX;
+     */
+    mMaxPanTransX = mWidth - (mStartSeq + MIN_CANDLE_COUNT) * mXAxis.scale - mZoomScaleX * mDataTransX;
+}
+
+
+void MarketCanvas::PanX()
+{
+    mXAxis.trans = std::fma(mZoomScaleX, mDataTransX, mZoomTransX);    // mZoomScaleX * mDataTransX + mZoomTransX;
 }
 
 
@@ -146,14 +180,14 @@ void MarketCanvas::Reload()
      * candleWidth = windowWidth / candleCount = windowWidth * scaleX / DEFAULT_CANDLE_DELTA;
      */
     // mCandleWidth = mWidth * lScaleX / DEFAULT_CANDLE_DELTA;
-    mCandleWidth = mZoomScaleX * mDataScaleX;
+    // mCandleWidth = mZoomScaleX * mDataScaleX;
 
     /*const auto lOffset = mEndSeq - DEFAULT_CANDLE_DELTA;
     mXAxis.scale       = lScaleX * mWidth / DEFAULT_CANDLE_DELTA;
     mXAxis.trans       = -lScaleX * lOffset * mWidth / DEFAULT_CANDLE_DELTA + lTransX;*/
 
-    mXAxis.scale = mZoomScaleX * mDataScaleX;
-    mXAxis.trans = mZoomScaleX * mDataTransX + mZoomTransX;
+    // mXAxis.scale = mZoomScaleX * mDataScaleX;
+    // mXAxis.trans = mZoomScaleX * mDataTransX + mZoomTransX;
 
     /*
      * Calculate coordinates in the model system space:

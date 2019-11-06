@@ -28,6 +28,29 @@ private:
 
     constexpr static SkScalar DEFAULT_CANDLE_DELTA{20.f};
 
+    /*
+     * 1. Transform x coordinate from data range (0, delta) to window range (0, width):
+     *      dataScale = width / delta               (1)
+     *
+     *  The minimum scale is:
+     *      dataScale_min = width / MAX_COUNT       (2)
+     *  The maximum scale is:
+     *      dataScale_max = width / MIN_COUNT       (3)
+     *
+     * 2. Zoom/Pan transformations in the window coordinate system:
+     *    modelScale' = modelScale * scale_delta * dataScale
+     * and
+     *    dataScale_min <= modelScale' <= dataScale_max,
+     * replace dataScale_min and dataScale_max with (2) and (3):
+     *    width / MAX_COUNT <= modelScale * scale_delta * dataScale <= width / MIN_COUNT
+     * replace dataScale with (1):
+     *    width / MAX_COUNT <= modelScale * scale_delta * width / delta <= width / MIN_COUNT
+     * the final result is:
+     *    delta / MAX_COUNT <= modelScale * scale_delta <= delta / MIN_COUNT
+     */
+    constexpr static SkScalar MIN_ZOOM_SCALE_X = DEFAULT_CANDLE_DELTA / MAX_CANDLE_COUNT;    // width / MAX_CANDLE_COUNT;
+    constexpr static SkScalar MAX_ZOOM_SCALE_X = DEFAULT_CANDLE_DELTA / MIN_CANDLE_COUNT;    // width / MIN_CANDLE_COUNT;
+
     SkMatrix mTransMatrix;
 
     Axis<uint32_t, axis::Date> mXAxis;
@@ -37,8 +60,8 @@ private:
     const uint32_t& mWidth;
     const uint32_t& mHeight;
 
-    SkScalar mMinScaleX{1.f};
-    SkScalar mMaxScaleX{1.f};
+    SkScalar mMinPanTransX{0.f};
+    SkScalar mMaxPanTransX{0.f};
 
     SkScalar mDataScaleX{1.f};
     SkScalar mDataTransX{0.f};
@@ -63,6 +86,9 @@ private:
 
     DataAnalyzer mDataAnalyzer;
 
+    void ZoomX();
+    void PanX();
+
     void Reload();
 
 public:
@@ -79,20 +105,31 @@ public:
         // mTransMatrix.postTranslate(aPosX, 0.f);    // Movement along Y axis is disabled.
         // mTransMatrix.postTranslate(aPosX, aPosY);
 
-        mZoomTransX += aPosX;
+        mZoomTransX = Median(mMinPanTransX, mMaxPanTransX, mZoomTransX + aPosX);
+
+        PanX();
     }
+
+    void Resize();
 
     void Zoom(const SkScalar /*aDeltaX*/, const SkScalar aDeltaY)
     {
         const auto lScaleX = std::fma(aDeltaY, 0.1f, 1.f);    // 1.f + aDeltaY / 10.f;
         const auto lDeltaX = mMousePosX * (1.f - lScaleX);
 
-        const auto t = mTransMatrix.getScaleX() * lScaleX;
-        const auto u = Median(mMinScaleX, mMaxScaleX, t);
-
         const auto lTemp = mZoomScaleX;
-        mZoomScaleX      = Median(mMinScaleX, mMaxScaleX, mZoomScaleX * lScaleX);
-        mZoomTransX      = std::fma(mZoomScaleX / lTemp, mZoomTransX, lDeltaX);
+        mZoomScaleX = Median(MIN_ZOOM_SCALE_X, MAX_ZOOM_SCALE_X, mZoomScaleX * lScaleX);
+
+        ZoomX();
+
+        mZoomTransX = std::fma(mZoomScaleX / lTemp, mZoomTransX, lDeltaX);
+        mZoomTransX = Median(mMinPanTransX, mMaxPanTransX, mZoomTransX);
+
+        PanX();
+
+        /*const auto lTemp = mZoomScaleX;
+        mZoomScaleX      = Median(MIN_ZOOM_SCALE_X, MAX_ZOOM_SCALE_X, mZoomScaleX * lScaleX);
+        mZoomTransX      = std::fma(mZoomScaleX / lTemp, mZoomTransX, lDeltaX);*/
 
         // const auto lScaleY = 1.f + aDeltaY / 10.f;
         // const auto lDeltaY = mMousePosY * (1.f - lScaleY);
