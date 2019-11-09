@@ -44,6 +44,8 @@ void MarketCanvas::Resize()
 
     ZoomX();
     PanX();
+
+    Reload();
 }
 
 
@@ -222,11 +224,6 @@ void MarketCanvas::Reload()
     if (mXAxis.min < mStartSeq)
         mXAxis.min = mStartSeq;
 
-    if (const auto lCandlePosX = std::lround((mMousePosX - mXAxis.trans) / mXAxis.scale); lCandlePosX >= 0)
-        mSelectedCandle = lCandlePosX;
-    else
-        mSelectedCandle = 0;
-
     auto [lLow, lHigh] = mDataAnalyzer.MinMax<log_price_tag>(mXAxis.min, mXAxis.max);    // range in y axis is: [low boundary, high boundary]
     lLow *= 0.999f;
     lHigh *= 1.001f;
@@ -245,21 +242,18 @@ void MarketCanvas::Reload()
     mVolumeAxis.trans = mZoomScaleY * (mHeight * lMax / (lMax - lMin)) + mZoomTransY;
 
     assert(!std::isinf(mVolumeAxis.scale));
+
+    mTransPrices = mDataAnalyzer.Saxpy<log_price_tag>(mXAxis.min, mXAxis.max, mXAxis.scale, mXAxis.trans, mPriceAxis.scale, mPriceAxis.trans, mVolumeAxis.scale, mVolumeAxis.trans);
 }
 
 
-void MarketCanvas::Paint(SkSurface* apSurface)
+void MarketCanvas::Paint(SkSurface* apSurface) const
 {
     auto& lCanvas = *(apSurface->getCanvas());
 
     lCanvas.clear(SK_ColorDKGRAY);
 
-    Reload();
-
-    const auto& lTransPrices =
-        mDataAnalyzer.Saxpy<log_price_tag>(mXAxis.min, mXAxis.max, mXAxis.scale, mXAxis.trans, mPriceAxis.scale, mPriceAxis.trans, mVolumeAxis.scale, mVolumeAxis.trans);
-
-    mpMarketPainter->DrawCandle(lCanvas, lTransPrices, mCandleWidth);
+    mpMarketPainter->DrawCandle(lCanvas, mTransPrices, mCandleWidth);
 
     mpAxisPainter->Draw<axis::Right>(lCanvas, mPriceAxis);
     mpAxisPainter->Draw<axis::Left>(lCanvas, mVolumeAxis);

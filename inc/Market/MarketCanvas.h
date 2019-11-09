@@ -51,6 +51,9 @@ private:
     constexpr static SkScalar MIN_ZOOM_SCALE_X = DEFAULT_CANDLE_DELTA / MAX_CANDLE_COUNT;    // width / MAX_CANDLE_COUNT;
     constexpr static SkScalar MAX_ZOOM_SCALE_X = DEFAULT_CANDLE_DELTA / MIN_CANDLE_COUNT;    // width / MIN_CANDLE_COUNT;
 
+    constexpr static SkScalar mZoomScaleY{1.f};    //  Scale along Y axis is disabled.
+    constexpr static SkScalar mZoomTransY{0.f};    //  Movement along Y axis is disabled.
+
     SkMatrix mTransMatrix;
 
     Axis<uint32_t, axis::Date> mXAxis;
@@ -69,8 +72,7 @@ private:
     SkScalar mZoomScaleX{1.f};
     SkScalar mZoomTransX{0.f};
 
-    constexpr static SkScalar mZoomScaleY{1.f};    //  Scale along Y axis is disabled.
-    constexpr static SkScalar mZoomTransY{0.f};    //  Movement along Y axis is disabled.
+    DatePricePair mTransPrices;
 
     SkScalar mMousePosX{0.f};
     SkScalar mMousePosY{0.f};
@@ -98,6 +100,11 @@ public:
     {
         mMousePosX = aPosX;
         mMousePosY = aPosY;
+
+        if (const auto lCandlePosX = std::lround((mMousePosX - mXAxis.trans) / mXAxis.scale); lCandlePosX >= 0)
+            mSelectedCandle = lCandlePosX;
+        else
+            mSelectedCandle = 0;
     }
 
     void MoveTo(const SkScalar aPosX, const SkScalar /*aPosY*/)
@@ -108,6 +115,8 @@ public:
         mZoomTransX = Median(mMinPanTransX, mMaxPanTransX, mZoomTransX + aPosX);
 
         PanX();
+
+        Reload();
     }
 
     void Resize();
@@ -126,6 +135,8 @@ public:
         mZoomTransX = Median(mMinPanTransX, mMaxPanTransX, mZoomTransX);
 
         PanX();
+
+        Reload();
 
         /*const auto lTemp = mZoomScaleX;
         mZoomScaleX      = Median(MIN_ZOOM_SCALE_X, MAX_ZOOM_SCALE_X, mZoomScaleX * lScaleX);
@@ -149,7 +160,7 @@ public:
     }
 
     void Capture(SkSurface* apSurface) const;
-    void Paint(SkSurface* apSurface);
+    void Paint(SkSurface* apSurface) const;
 };
 
 

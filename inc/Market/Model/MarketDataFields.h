@@ -41,7 +41,7 @@ struct MarketDataField
 
     __host__ __device__ auto& operator=(const tuple_type& aData)
     {
-        seq  = thrust::get<0>(aData);
+        seq    = thrust::get<0>(aData);
         open   = thrust::get<1>(aData);
         close  = thrust::get<2>(aData);
         low    = thrust::get<3>(aData);
@@ -75,6 +75,7 @@ using DateIterator         = thrust::host_vector<date::year_month_day>::const_it
 using PriceIterator        = thrust::host_vector<MarketDataFields>::const_iterator;
 using DatePriceIterator    = thrust::tuple<DateIterator, PriceIterator>;
 using DatePriceZipIterator = thrust::zip_iterator<DatePriceIterator>;
+using DatePricePair        = std::pair<DatePriceZipIterator, DatePriceZipIterator>;
 
 
 

@@ -73,8 +73,8 @@ public:
     [[nodiscard]] std::pair<float, float> MinMax(const uint32_t aStartIndex, const uint32_t aEndIndex) const;
 
     template <typename T>
-    [[nodiscard]] std::pair<DatePriceZipIterator, DatePriceZipIterator> Saxpy(const uint32_t aStartIndex, const uint32_t aEndIndex, const float aScaleX, const float aTransX,
-                                                                              const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const;
+    [[nodiscard]] DatePricePair Saxpy(const uint32_t aStartIndex, const uint32_t aEndIndex, const float aScaleX, const float aTransX, const float aScaleY, const float aTransY,
+                                      const float aScaleZ, const float aTransZ) const;
 };
 
 
