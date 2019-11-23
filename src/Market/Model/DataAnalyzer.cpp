@@ -222,8 +222,8 @@ std::pair<float, float> DataAnalyzer::MinMax<log_volume_tag>(const uint32_t aSta
 
 
 template <>
-std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy<price_tag>(const uint32_t aStartIndex, const uint32_t aEndIndex, const float aScaleX, const float aTransX,
-                                                                                     const float aScaleY, const float aTransY, const float aScaleZ, const float aTransZ) const
+DatePricePair DataAnalyzer::Saxpy<price_tag>(const uint32_t aStartIndex, const uint32_t aEndIndex, const float aScaleX, const float aTransX, const float aScaleY,
+                                             const float aTransY, const float aScaleZ, const float aTransZ) const
 {
     const auto lRange = Normalize(aStartIndex, aEndIndex);
 
@@ -254,14 +254,13 @@ std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy<price_
         });
 
     return std::make_pair(thrust::make_zip_iterator(thrust::make_tuple(lData.begin<date_tag>() + lRange.first, lResult.begin())),
-                          thrust::make_zip_iterator(thrust::make_tuple(lData.begin<date_tag>() + lRange.second, lResult.end())));
+        thrust::make_zip_iterator(thrust::make_tuple(lData.begin<date_tag>() + lRange.second, lResult.end())));
 }
 
 
 template <>
-std::pair<DatePriceZipIterator, DatePriceZipIterator> DataAnalyzer::Saxpy<log_price_tag>(const uint32_t aStartIndex, const uint32_t aEndIndex, const float aScaleX,
-                                                                                         const float aTransX, const float aScaleY, const float aTransY, const float aScaleZ,
-                                                                                         const float aTransZ) const
+DatePricePair DataAnalyzer::Saxpy<log_price_tag>(const uint32_t aStartIndex, const uint32_t aEndIndex, const float aScaleX, const float aTransX, const float aScaleY,
+                                                 const float aTransY, const float aScaleZ, const float aTransZ) const
 {
     const auto lRange = Normalize(aStartIndex, aEndIndex);
 

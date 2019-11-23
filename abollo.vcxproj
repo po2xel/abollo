@@ -54,7 +54,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.1.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.2.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -115,7 +115,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)inc;$(SolutionDir)inc\soci\private;$(VULKAN_SDK)\include;$(BOOST_LIB);$(CUDA_PATH)\include;$(SolutionDir)inc\skia;$(SolutionDir)inc\sqlite3;$(SolutionDir)inc\soci;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <DisableSpecificWarnings>4201;4324;4515;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4201;4324;4515;4819;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
     </ClCompile>
@@ -167,7 +167,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)inc;$(SolutionDir)inc\soci\private;$(VULKAN_SDK)\include;$(BOOST_LIB);$(CUDA_PATH)\include;$(SolutionDir)inc\skia;$(SolutionDir)inc\sqlite3;$(SolutionDir)inc\soci;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
-      <DisableSpecificWarnings>4201;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4201;4819;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <AdditionalOptions>/experimental:external /external:I "$(CUDA_PATH)\include" /external:W3 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -236,6 +236,8 @@
     <ClInclude Include="inc\Graphics\vk\vk.h" />
     <ClInclude Include="inc\Graphics\VulkanContext.h" />
     <ClInclude Include="inc\Market\MarketCanvas.h" />
+    <ClInclude Include="inc\Market\Markup\Markup.h" />
+    <ClInclude Include="inc\Market\Markup\MarkupPainter.h" />
     <ClInclude Include="inc\Market\Model\ChunkedArray.h" />
     <ClInclude Include="inc\Market\Model\CircularMarketingTable.h" />
     <ClInclude Include="inc\Market\Model\ColumnTraits.h" />
@@ -260,6 +262,6 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.1.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.2.targets" />
   </ImportGroup>
 </Project>

@@ -423,20 +423,24 @@ public:
     template <auto... E, typename Slot>
     void On(Slot&& aSlot)
     {
-        if constexpr ((std::is_base_of_v<internal::EventTrait<decltype(E), E>, EventSlot<Es...>> && ...))
-            (internal::EventTrait<decltype(E), E>::On(std::forward<Slot>(aSlot)), ...);
+        static_assert((std::is_base_of_v<internal::EventTrait<decltype(E), E>, EventSlot<Es...>> && ...), "Event is not specified.");
+
+        (internal::EventTrait<decltype(E), E>::On(std::forward<Slot>(aSlot)), ...);
     }
 
     template <auto... E>
     void Off()
     {
-        if constexpr ((std::is_base_of_v<internal::EventTrait<decltype(E), E>, EventSlot<Es...>> && ...))
-            (internal::EventTrait<decltype(E), E>::Off(), ...);
+        static_assert((std::is_base_of_v<internal::EventTrait<decltype(E), E>, EventSlot<Es...>> && ...), "Event is not specified.");
+
+        (internal::EventTrait<decltype(E), E>::Off(), ...);
     }
 
     template <auto... E, typename... Args>
     constexpr void Signal(Args&&... aArgs) const
     {
+        // static_assert((std::is_base_of_v<internal::EventTrait<decltype(E), E>, EventSlot<Es...>> && ...), "Event is not specified.");
+
         if constexpr ((std::is_base_of_v<internal::EventTrait<decltype(E), E>, EventSlot<Es...>> && ...))
             (internal::EventTrait<decltype(E), E>::Signal(std::forward<Args>(aArgs)...), ...);
         else

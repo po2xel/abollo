@@ -61,6 +61,9 @@
     <Filter Include="Header Files\Market\Painter">
       <UniqueIdentifier>{fe79ceca-9e25-4d42-a1d5-c46f4cdb7ec3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Market\Markup">
+      <UniqueIdentifier>{110cc360-c704-4dae-a20d-4d6404351dca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\fmt\format.cc">
@@ -262,6 +265,12 @@
     </ClInclude>
     <ClInclude Include="inc\Utility\Median.h">
       <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Market\Markup\Markup.h">
+      <Filter>Header Files\Market\Markup</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\Market\Markup\MarkupPainter.h">
+      <Filter>Header Files\Market\Markup</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

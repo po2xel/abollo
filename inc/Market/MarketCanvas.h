@@ -5,9 +5,12 @@
 
 #include <cmath>
 #include <memory>
+#include <vector>
 
+#include <skia/include/core/SkPath.h>
 #include <skia/include/core/SkSurface.h>
 
+#include "Market/Markup/MarkupPainter.h"
 #include "Market/Model/DataAnalyzer.h"
 #include "Market/Painter.h"
 #include "Market/Painter/AxisPainter.h"
@@ -54,8 +57,6 @@ private:
     constexpr static SkScalar mZoomScaleY{1.f};    //  Scale along Y axis is disabled.
     constexpr static SkScalar mZoomTransY{0.f};    //  Movement along Y axis is disabled.
 
-    SkMatrix mTransMatrix;
-
     Axis<uint32_t, axis::Date> mXAxis;
     Axis<SkScalar, axis::Price> mPriceAxis;
     Axis<SkScalar, axis::Volume> mVolumeAxis;
@@ -85,8 +86,33 @@ private:
 
     std::unique_ptr<Painter> mpMarketPainter;
     std::unique_ptr<AxisPainter> mpAxisPainter;
+    std::unique_ptr<MarkupPainter> mpMarkupPainter;
 
     DataAnalyzer mDataAnalyzer;
+
+    std::vector<MarkupType> mMarkups;
+
+    [[nodiscard]] SkPoint ConvertToData(const SkScalar aPosX, const SkScalar aPosY) const
+    {
+        // return {(aPosX - mXAxis.trans) / mXAxis.scale, std::expf((aPosY - mPriceAxis.trans) / mPriceAxis.scale)};
+        return {(aPosX - mXAxis.trans) / mXAxis.scale, (aPosY - mPriceAxis.trans) / mPriceAxis.scale};
+    }
+
+    [[nodiscard]] SkPoint ConvertToData(const SkPoint& aPos) const
+    {
+        return ConvertToData(aPos.x(), aPos.y());
+    }
+
+    [[nodiscard]] SkPoint ConvertToPixel(const SkScalar aPosX, const SkScalar aPosY) const
+    {
+        // return {std::fma(aPosX, mXAxis.scale, mXAxis.trans), std::fma(std::logf(aPosY), mPriceAxis.scale, mPriceAxis.trans)};
+        return {std::fma(aPosX, mXAxis.scale, mXAxis.trans), std::fma(aPosY, mPriceAxis.scale, mPriceAxis.trans)};
+    }
+
+    [[nodiscard]] SkPoint ConvertToPixel(const SkPoint& aPos) const
+    {
+        return ConvertToPixel(aPos.x(), aPos.y());
+    }
 
     void ZoomX();
     void PanX();
@@ -96,7 +122,36 @@ private:
 public:
     MarketCanvas(const uint32_t& aWidth, const uint32_t& aHeight);
 
-    void Move(const SkScalar aPosX, const SkScalar aPosY)
+    template <typename T = None, typename... Args>
+    void ResetMode(Args&&... aArgs)
+    {
+        mMarkups.back().emplace<T>(std::forward<Args>(aArgs)...);
+    }
+
+    void Begin(const SkScalar aPosX, const SkScalar aPosY)
+    {
+        std::visit([aStart = SkPoint::Make(aPosX, aPosY)](auto&& aMarkup) { aMarkup.Begin(aStart); }, mMarkups.back());
+    }
+
+    void Next(const SkScalar aPosX, const SkScalar aPosY)
+    {
+        std::visit([aNext = SkPoint::Make(aPosX, aPosY)](auto&& aMarkup) { aMarkup.Next(aNext); }, mMarkups.back());
+    }
+
+    void End(const SkScalar aPosX, const SkScalar aPosY)
+    {
+        std::visit([aEnd = SkPoint::Make(aPosX, aPosY)](auto&& aMarkup) { aMarkup.End(aEnd); }, mMarkups.back());
+
+        mMarkups.emplace_back();
+    }
+
+    // template <typename... Args>
+    // void Begin(Args&&... aArgs)
+    // {
+    //     std::visit([... aArgs = std::forward<Args>(aArgs)](auto&& aMarkup) { aMarkup.Begin(aArgs...); }, mCurrentMarkup);
+    // }
+
+    void Pick(const SkScalar aPosX, const SkScalar aPosY)
     {
         mMousePosX = aPosX;
         mMousePosY = aPosY;
@@ -107,7 +162,7 @@ public:
             mSelectedCandle = 0;
     }
 
-    void MoveTo(const SkScalar aPosX, const SkScalar /*aPosY*/)
+    void Pan(const SkScalar aPosX, const SkScalar /*aPosY*/)
     {
         // mTransMatrix.postTranslate(aPosX, 0.f);    // Movement along Y axis is disabled.
         // mTransMatrix.postTranslate(aPosX, aPosY);
@@ -127,7 +182,7 @@ public:
         const auto lDeltaX = mMousePosX * (1.f - lScaleX);
 
         const auto lTemp = mZoomScaleX;
-        mZoomScaleX = Median(MIN_ZOOM_SCALE_X, MAX_ZOOM_SCALE_X, mZoomScaleX * lScaleX);
+        mZoomScaleX      = Median(MIN_ZOOM_SCALE_X, MAX_ZOOM_SCALE_X, mZoomScaleX * lScaleX);
 
         ZoomX();
 

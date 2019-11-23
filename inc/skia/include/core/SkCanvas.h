@@ -76,7 +76,7 @@ class SkTextBlob;
     This approach may be deprecated in the future.
 */
 class SK_API SkCanvas {
-    enum PrivateSaveLayerFlags : uint32_t {
+    enum PrivateSaveLayerFlags {
         kDontClipToLayer_PrivateSaveLayerFlag   = 1U << 31,
     };
 
@@ -285,6 +285,11 @@ public:
         example: https://fiddle.skia.org/c/@Canvas_getGrContext
     */
     virtual GrContext* getGrContext();
+
+    /** Sometimes a canvas is owned by a surface. If it is, getSurface() will return a bare
+     *  pointer to that surface, else this will return nullptr.
+     */
+    SkSurface* getSurface() const;
 
     /** Returns the pixel base address, SkImageInfo, rowBytes, and origin if the pixels
         can be read directly. The returned address is only valid

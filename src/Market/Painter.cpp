@@ -95,7 +95,7 @@ void Painter::Highlight(SkCanvas& aCanvas, const MarketDataFields& aCandleData, 
 
     aCanvas.drawString(lPriceLabel.data(), lTransformed.seq, lTransformed.volume, mAxisLabelFont, mAxisPaint);
 
-    lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, lOriginal.open);
+    /*lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, lOriginal.open);
     aCanvas.drawString(lPriceLabel.data(), lTransformed.seq, lTransformed.open, mAxisLabelFont, mAxisPaint);
 
     lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, lOriginal.close);
@@ -105,7 +105,7 @@ void Painter::Highlight(SkCanvas& aCanvas, const MarketDataFields& aCandleData, 
     aCanvas.drawString(lPriceLabel.data(), lTransformed.seq, lTransformed.low, mAxisLabelFont, mAxisPaint);
 
     lPriceLabel = fmt::format(DEFAULT_LABEL_FORMAT_STR, lOriginal.high);
-    aCanvas.drawString(lPriceLabel.data(), lTransformed.seq, lTransformed.high, mAxisLabelFont, mAxisPaint);
+    aCanvas.drawString(lPriceLabel.data(), lTransformed.seq, lTransformed.high, mAxisLabelFont, mAxisPaint);*/
 }
 
 

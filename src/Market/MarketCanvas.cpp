@@ -34,6 +34,9 @@ MarketCanvas::MarketCanvas(const uint32_t& aWidth, const uint32_t& aHeight) : mW
 
     mpMarketPainter = std::make_unique<Painter>();
     mpAxisPainter   = std::make_unique<AxisPainter>();
+    mpMarkupPainter = std::make_unique<MarkupPainter>();
+
+    mMarkups.emplace_back();
 }
 
 
@@ -253,6 +256,9 @@ void MarketCanvas::Paint(SkSurface* apSurface) const
 
     lCanvas.clear(SK_ColorDKGRAY);
 
+    // const auto lPrice = std::expf((mMousePosY - mPriceAxis.trans) / mPriceAxis.scale);
+    // fmt::print("(x, y) -> ({}, {}) -> ({}, {})\n", mMousePosX, mMousePosY, mSelectedCandle, lPrice);
+
     mpMarketPainter->DrawCandle(lCanvas, mTransPrices, mCandleWidth);
 
     mpAxisPainter->Draw<axis::Right>(lCanvas, mPriceAxis);
@@ -260,6 +266,29 @@ void MarketCanvas::Paint(SkSurface* apSurface) const
 
     const auto& lCandleData = mDataAnalyzer[mXAxis.max - Median(mXAxis.min, mXAxis.max, mSelectedCandle)];
     mpMarketPainter->Highlight(lCanvas, lCandleData, mCandleWidth);
+
+    {
+        SkAutoCanvasRestore lGuard(&lCanvas, true);
+
+        // lCanvas.translate(mXAxis.trans, mPriceAxis.trans);
+        // lCanvas.scale(mXAxis.scale, mPriceAxis.scale);
+
+        for (const auto& lMarkup : mMarkups)
+            std::visit(
+                [&lCanvas, &lPainter = *mpMarkupPainter, lPos = SkPoint::Make(mMousePosX, mMousePosY)](auto&& aMarkup) {
+                    if (aMarkup.HitTest(lPos))
+                    {
+                        lPainter.SetColor(SK_ColorYELLOW);
+                        lPainter.Highlight(lCanvas, aMarkup);
+                    }
+                    else
+                    {
+                        lPainter.SetColor(SK_ColorMAGENTA);
+                        lPainter.Draw(lCanvas, aMarkup);
+                    }
+                },
+                lMarkup);
+    }
 }
 
 
