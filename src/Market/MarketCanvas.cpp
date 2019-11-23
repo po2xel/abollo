@@ -276,7 +276,7 @@ void MarketCanvas::Paint(SkSurface* apSurface) const
         for (const auto& lMarkup : mMarkups)
             std::visit(
                 [&lCanvas, &lPainter = *mpMarkupPainter, lPos = SkPoint::Make(mMousePosX, mMousePosY)](auto&& aMarkup) {
-                    if (aMarkup.HitTest(lPos))
+                    if (aMarkup.HitTest(lPos) != ControlPointType::eNone)
                     {
                         lPainter.SetColor(SK_ColorYELLOW);
                         lPainter.Highlight(lCanvas, aMarkup);

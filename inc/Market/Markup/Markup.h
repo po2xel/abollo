@@ -14,7 +14,22 @@ namespace abollo
 
 
 
-inline constexpr SkScalar HIT_TEST_EPSILON{2.5f};
+inline bool HistTestCircle(const SkScalar aDistance)
+{
+    constexpr static auto HIT_TEST_EPSILON{2.5f};
+
+    return aDistance <= HIT_TEST_EPSILON && aDistance >= -HIT_TEST_EPSILON;
+}
+
+
+
+enum class ControlPointType
+{
+    eNone,
+    eBegin,
+    eMiddle,
+    eEnd
+};
 
 
 
@@ -32,9 +47,9 @@ struct None
     {
     }
 
-    bool HitTest(const SkPoint& /*aPos*/) const
+    [[nodiscard]] ControlPointType HitTest(const SkPoint& /*aPos*/) const
     {
-        return false;
+        return ControlPointType::eNone;
     }
 };
 
@@ -74,14 +89,29 @@ public:
         mEnd = aEnd;
     }
 
-    [[nodiscard]] bool HitTest(const SkPoint& aPos) const
+    [[nodiscard]] ControlPointType HitTest(const SkPoint& aPos) const
     {
+        auto lDistance = SkPoint::Distance(aPos, mStart);
+
+        if (HistTestCircle(lDistance))
+            return ControlPointType::eBegin;
+
+        lDistance = SkPoint::Distance(aPos, mEnd);
+
+        printf("%f\n", lDistance);
+
+        if (HistTestCircle(lDistance))
+            return ControlPointType::eEnd;
+
         // https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
         const auto lDelta = mEnd - mStart;
 
-        const auto lDistance = (lDelta.y() * aPos.x() - lDelta.x() * aPos.y() + mEnd.x() * mStart.y() - mEnd.y() * mStart.x()) / std::hypot(lDelta.x(), lDelta.y());
+        lDistance = (lDelta.y() * aPos.x() - lDelta.x() * aPos.y() + mEnd.x() * mStart.y() - mEnd.y() * mStart.x()) / std::hypot(lDelta.x(), lDelta.y());
 
-        return lDistance <= HIT_TEST_EPSILON && lDistance >= -HIT_TEST_EPSILON;
+        if (HistTestCircle(lDistance))
+            return ControlPointType::eMiddle;
+
+        return ControlPointType::eNone;
     }
 };
 
@@ -109,9 +139,9 @@ struct FibRetracement
         end = aEnd;
     }
 
-    bool HitTest(const SkPoint& /*aPos*/) const
+    static ControlPointType HitTest(const SkPoint& /*aPos*/)
     {
-        return false;
+        return ControlPointType::eNone;
     }
 };
 

@@ -135,6 +135,28 @@ public:
 
     void Next(const SkScalar aPosX, const SkScalar aPosY)
     {
+        for (auto& lMarkup : mMarkups)
+            std::visit(
+                [lPos = SkPoint::Make(aPosX, aPosY)](auto&& aMarkup) {
+                    switch (aMarkup.HitTest(lPos))
+                    {
+                    case ControlPointType::eBegin:
+                        aMarkup.Begin(lPos);
+                        break;
+
+                    case ControlPointType::eEnd:
+                        aMarkup.End(lPos);
+                        break;
+
+                    case ControlPointType::eMiddle:
+                        break;
+
+                    default:
+                        break;
+                    }
+                },
+                lMarkup);
+
         std::visit([aNext = SkPoint::Make(aPosX, aPosY)](auto&& aMarkup) { aMarkup.Next(aNext); }, mMarkups.back());
     }
 
@@ -160,6 +182,32 @@ public:
             mSelectedCandle = lCandlePosX;
         else
             mSelectedCandle = 0;
+    }
+
+    void Pan2(const SkScalar aPosX, const SkScalar aPosY)
+    {
+        for (auto& lMarkup : mMarkups)
+            std::visit(
+                [lPos = SkPoint::Make(aPosX, aPosY)](auto&& aMarkup) {
+                    switch (aMarkup.HitTest(lPos))
+                    {
+                    case ControlPointType::eBegin:
+                        aMarkup.Begin(lPos);
+                        break;
+
+                    case ControlPointType::eEnd:
+                        aMarkup.End(lPos);
+                        break;
+
+                    case ControlPointType::eMiddle:
+                        break;
+
+                    default:
+                        break;
+                        ;
+                    }
+                },
+                lMarkup);
     }
 
     void Pan(const SkScalar aPosX, const SkScalar /*aPosY*/)
